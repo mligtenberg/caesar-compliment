@@ -1,0 +1,25 @@
+<three-d-stage background="#f1f6fa"></three-d-stage>
+<div class="tier-controls">
+  <div class="tier-row" data-tier="0">
+    <button type="button" onclick="window.rotateTierImages && rotateTierImages(0, -1)" aria-label="Laag 1 vorige">‹</button>
+    <button type="button" onclick="window.rotateTierImages && rotateTierImages(0, 1)" aria-label="Laag 1 volgende">›</button>
+  </div>
+  <div class="tier-row" data-tier="1">
+    <button type="button" onclick="window.rotateTierImages && rotateTierImages(1, -1)" aria-label="Laag 2 vorige">‹</button>
+    <button type="button" onclick="window.rotateTierImages && rotateTierImages(1, 1)" aria-label="Laag 2 volgende">›</button>
+  </div>
+  <div class="tier-row" data-tier="2">
+    <button type="button" onclick="window.rotateTierImages && rotateTierImages(2, -1)" aria-label="Laag 3 vorige">‹</button>
+    <button type="button" onclick="window.rotateTierImages && rotateTierImages(2, 1)" aria-label="Laag 3 volgende">›</button>
+  </div>
+  <div class="tier-row" data-tier="3">
+    <button type="button" onclick="window.rotateTierImages && rotateTierImages(3, -1)" aria-label="Laag 4 vorige">‹</button>
+    <button type="button" onclick="window.rotateTierImages && rotateTierImages(3, 1)" aria-label="Laag 4 volgende">›</button>
+  </div>
+</div>
+<button type="button" id="choose-card-btn" class="choose-btn">Kies deze</button>
+<div class="compliment-panel" id="compliment-panel">
+  <textarea id="compliment-text" maxlength="140" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off"></textarea>
+</div>
+<button type="button" id="compliment-submit" style="display:none">Klaar</button>
+<app-thanks-overlay></app-thanks-overlay>

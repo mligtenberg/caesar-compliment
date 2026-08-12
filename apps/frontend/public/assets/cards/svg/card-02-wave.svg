@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1360" viewBox="0 0 960 1360">
+  <rect width="960" height="1360" fill="#fdece0"/>
+  <path d="M0 475.99999999999994 Q 240 415.99999999999994 480 475.99999999999994 T 960 475.99999999999994 V 1360 H0 Z" fill="#143062" opacity="0.9"/><path d="M0 626 Q 240 566 480 626 T 960 626 V 1360 H0 Z" fill="#ed7126" opacity="0.8"/><path d="M0 776 Q 240 716 480 776 T 960 776 V 1360 H0 Z" fill="#143062" opacity="0.7"/><path d="M0 926 Q 240 866 480 926 T 960 926 V 1360 H0 Z" fill="#ed7126" opacity="0.6"/><path d="M0 1076 Q 240 1016 480 1076 T 960 1076 V 1360 H0 Z" fill="#143062" opacity="0.5"/><path d="M0 1226 Q 240 1166 480 1226 T 960 1226 V 1360 H0 Z" fill="#ed7126" opacity="0.4"/>
+  <rect x="28" y="28" width="904" height="1304" fill="none" stroke="#ed7126" stroke-width="6" stroke-opacity="0.35"/>
+</svg>
