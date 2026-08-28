@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/apps/" />
+  <Folder Name="/apps/backend-e2e/">
+    <Project Path="apps/backend-e2e/CaesarCompliment.Backend.Tests.csproj" />
+  </Folder>
+  <Folder Name="/apps/backend/">
+    <Project Path="apps/backend/CaesarCompliment.Backend.csproj" />
+  </Folder>
+</Solution>
