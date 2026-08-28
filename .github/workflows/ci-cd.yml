@@ -1,0 +1,162 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+env:
+  NODE_VERSION: 24
+  PNPM_VERSION: 11
+  DOTNET_VERSION: '10.0.x'
+  AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+  AZURE_ENVIRONMENT_NAME: ${{ vars.AZURE_ENVIRONMENT_NAME || 'prod' }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-frontend:
+    name: Build frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec nx lint frontend
+
+      - run: pnpm exec nx test frontend
+
+      - run: pnpm exec nx build frontend --configuration=production
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist/apps/frontend/browser
+          retention-days: 7
+
+  build-backend:
+    name: Build backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - run: dotnet restore CaesarCompliment.slnx
+
+      - run: dotnet test CaesarCompliment.slnx --configuration Release --no-restore
+
+      - run: |
+          dotnet publish apps/backend/CaesarCompliment.Backend.csproj \
+            --configuration Release \
+            --no-restore \
+            --output publish/backend
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: backend-publish
+          path: publish/backend
+          retention-days: 7
+
+  deploy-infra:
+    name: Deploy infrastructure
+    if: github.event_name != 'pull_request'
+    needs: [build-frontend, build-backend]
+    runs-on: ubuntu-latest
+    outputs:
+      backendName: ${{ steps.deploy.outputs.backendName }}
+      frontendName: ${{ steps.deploy.outputs.frontendName }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - id: deploy
+        uses: azure/arm-deploy@v2
+        with:
+          scope: resourcegroup
+          resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
+          template: infra/main.bicep
+          parameters: environmentName=${{ env.AZURE_ENVIRONMENT_NAME }}
+
+  deploy-backend:
+    name: Deploy backend
+    if: github.event_name != 'pull_request'
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: backend-publish
+          path: publish/backend
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ needs.deploy-infra.outputs.backendName }}
+          resource-group-name: ${{ env.AZURE_RESOURCE_GROUP }}
+          package: publish/backend
+
+  deploy-frontend:
+    name: Deploy frontend
+    if: github.event_name != 'pull_request'
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend-dist
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - id: token
+        run: |
+          az extension add --name staticwebapp --yes
+          deployment_token=$(az staticwebapp secrets list \
+            --name "${{ needs.deploy-infra.outputs.frontendName }}" \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.apiKey" -o tsv)
+          echo "::add-mask::$deployment_token"
+          echo "deployment_token=$deployment_token" >> "$GITHUB_OUTPUT"
+
+      - uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.deployment_token }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: frontend-dist
+          skip_app_build: true
+          skip_api_build: true
