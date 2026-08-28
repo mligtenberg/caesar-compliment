@@ -1,1 +1,12 @@
+@if (displayName) {
+  <div class="auth-bar">
+    @if (profilePictureUrl) {
+      <img class="avatar" [src]="profilePictureUrl" alt="" />
+    } @else {
+      <span class="avatar avatar-initials">{{ initials }}</span>
+    }
+    <span class="auth-name">{{ displayName }}</span>
+    <button type="button" class="sign-out-btn" (click)="signOut()">Sign out</button>
+  </div>
+}
 <router-outlet></router-outlet>
