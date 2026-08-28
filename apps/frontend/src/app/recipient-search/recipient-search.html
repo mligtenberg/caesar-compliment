@@ -1,0 +1,23 @@
+<div class="search-screen">
+  <h1>Wie wil je een compliment geven?</h1>
+  <input
+    class="search-input"
+    type="text"
+    placeholder="Zoek een collega..."
+    autocomplete="off"
+    spellcheck="false"
+    [(ngModel)]="searchTerm"
+  />
+  <ul class="suggestions">
+    @for (recipient of suggestions(); track recipient.id) {
+      <li>
+        <button type="button" class="suggestion" (click)="selectRecipient(recipient)">
+          <span class="suggestion-name">{{ recipient.name }}</span>
+          <span class="suggestion-department">{{ recipient.department }}</span>
+        </button>
+      </li>
+    } @empty {
+      <li class="no-results">Geen collega's gevonden</li>
+    }
+  </ul>
+</div>

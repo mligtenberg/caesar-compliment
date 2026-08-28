@@ -1,5 +1,8 @@
+:host {
+  display: block;
+}
 .thanks-overlay {
-  display: none;
+  display: flex;
   position: fixed; inset: 0; z-index: 10;
   background: #224F82;
   align-items: center; justify-content: center;
@@ -8,9 +11,45 @@
   padding: 24px;
   text-align: center;
   opacity: 0;
-  transition: opacity 260ms ease;
+  animation: thanks-fade-in 220ms ease forwards;
 }
-.thanks-overlay.is-visible { opacity: 1; }
+@keyframes thanks-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.thanks-overlay .thanks-cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+}
+.thanks-overlay .thanks-card-img {
+  width: 160px;
+  max-width: 38vw;
+  aspect-ratio: 96 / 138;
+  object-fit: cover;
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  background: #fff;
+}
+.thanks-overlay .thanks-card-img.is-landscape {
+  width: 230px;
+  max-width: 54vw;
+  aspect-ratio: 138 / 96;
+}
+.thanks-overlay .thanks-card-img:not([src]) { display: none; }
+.thanks-overlay .thanks-text {
+  color: #fff;
+  font-family: Montserrat, -apple-system, sans-serif;
+  font-weight: 400;
+  font-style: italic;
+  font-size: 20px;
+  line-height: 1.4;
+  max-width: 480px;
+  margin: 0;
+}
+.thanks-overlay .thanks-text:empty { display: none; }
 .thanks-overlay p {
   color: #fff;
   font-family: Montserrat, -apple-system, sans-serif;

@@ -21,6 +21,34 @@ three-d-stage {
   pointer-events: none;
   transition: padding 60ms linear;
 }
+.recipient-badge {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 4px 14px rgba(13, 31, 63, 0.15);
+  font-family: Montserrat, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #224F82;
+}
+.recipient-badge button {
+  border: none;
+  border-radius: 6px;
+  background: #224F82;
+  color: #fff;
+  font-family: Montserrat, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.recipient-badge button:hover { background: #2E62A0; }
 .tier-row { display: flex; justify-content: space-between; }
 .tier-row button {
   pointer-events: auto;

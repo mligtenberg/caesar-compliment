@@ -1,4 +1,15 @@
-<div class="thanks-overlay" id="thanks-overlay">
-  <div class="rule"></div>
-  <p>Je complimentje is onderweg, dankjewel voor het versturen</p>
-</div>
+@if (thanks(); as t) {
+  <div class="thanks-overlay is-visible">
+    <div class="thanks-cards">
+      @if (t.frontSrc) {
+        <img class="thanks-card-img" [class.is-landscape]="t.frontIsLandscape" [src]="t.frontSrc" alt="Voorkant van de verstuurde kaart" />
+      }
+      <img class="thanks-card-img is-landscape" [src]="t.backSrc" alt="Achterkant van de kaart met postzegel en compliment" />
+    </div>
+    @if (t.text) {
+      <p class="thanks-text">{{ t.text }}</p>
+    }
+    <div class="rule"></div>
+    <p>Je complimentje{{ t.recipientName ? ' aan ' + t.recipientName : '' }} is onderweg, dankjewel voor het versturen</p>
+  </div>
+}

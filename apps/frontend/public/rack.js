@@ -1,7 +1,15 @@
 import * as THREE from 'three';
 
+// This module is re-fetched (via a cache-busted URL) every time the rack view
+// remounts, since ES modules only ever evaluate once per exact URL otherwise.
+// The previous instance's own global listeners and render loop would
+// otherwise keep running forever against its now-detached DOM/scene.
+window.__rackTeardown__?.();
+
 const stage = document.querySelector('three-d-stage');
 const { THREE: T } = await stage.ready;
+
+const RECIPIENT_NAME = window.__RECIPIENT_NAME__ || '';
 
 const M = {
   steelBlue: new T.MeshStandardMaterial({ name: 'staal-blauw', color: 0x224f82, roughness: 0.42, metalness: 0.35 }),
@@ -144,7 +152,18 @@ function renderBack(text, caretIdx, selStart, selEnd) {
       const x0 = lw * 0.6, x1 = lw - 60;
       const target = x0 + (x1 - x0) * lineLens[i];
       const localT = Math.max(0, Math.min(1, addressProgress * 4 - i));
-      drawScribbleLine(backCtx, x0, target, y, localT);
+      if (i === 0 && RECIPIENT_NAME) {
+        backCtx.save();
+        backCtx.beginPath();
+        backCtx.rect(x0, y - 40, (x1 - x0) * localT, 50);
+        backCtx.clip();
+        backCtx.font = '400 34px Montserrat, sans-serif';
+        backCtx.fillStyle = '#224F82';
+        backCtx.fillText(RECIPIENT_NAME, x0, y);
+        backCtx.restore();
+      } else {
+        drawScribbleLine(backCtx, x0, target, y, localT);
+      }
     }
   }
   backCtx.strokeRect(lw - 190, 60, 130, 170);
@@ -235,6 +254,7 @@ function pocket(index, faceTexture, orientation, collector, worldMat) {
   face.position.set(0, 0, 0.0011);
   if (isLandscape) face.rotation.z = Math.PI / 2;
   card.add(face);
+  card.userData.frontTexture = faceTexture;
   const back = new T.Mesh(faceGeo, backMat);
   back.name = `kaart-achterzijde-${index}`;
   back.position.set(0, 0, -0.0011);
@@ -249,7 +269,7 @@ function pocket(index, faceTexture, orientation, collector, worldMat) {
 const rack = new T.Group();
 rack.name = 'ansichtkaartenrek';
 
-const POLE_H = 1.42, POLE_R = 0.019;
+const POLE_H = 1.08, POLE_R = 0.019;
 const base = new T.Mesh(new T.CylinderGeometry(0.3, 0.33, 0.028, 40), M.steelBlue);
 base.name = 'voetplaat';
 base.position.y = 0.014;
@@ -312,7 +332,7 @@ function placeholderTexture(i, isLandscape) {
   return tex;
 }
 
-const TIERS = [0.40, 0.66, 0.92, 1.18];
+const TIERS = [0.40, 0.62, 0.84];
 const PER_TIER = 8, R_BACK = 0.152;
 const TOTAL_POCKETS = TIERS.length * PER_TIER;
 
@@ -445,7 +465,7 @@ const liftPos = new T.Vector3(), liftQuat = new T.Quaternion(), liftScaleVec = n
 const sendTargetPos = new T.Vector3();
 const sendStartQuat = new T.Quaternion(), sendEndQuat = new T.Quaternion();
 let sendStart = 0;
-const SEND_MS = 700;
+const SEND_MS = 500;
 // Eases toward how far the camera needs to retreat to fit an oversized lifted
 // card on screen, instead of snapping straight to it.
 let liftRetreat = 0;
@@ -459,6 +479,7 @@ function liftCard(cardMesh) {
   stage._scene.attach(cardMesh);
   cardAnimState = 'out';
   isFlipped = false;
+  cardShowsBack = false;
   const panel = document.querySelector('.tier-controls');
   if (panel) panel.style.visibility = 'hidden';
   chooseBtn.style.display = 'block';
@@ -470,6 +491,7 @@ function returnCard() {
   complimentPanel.style.display = 'none';
   complimentSubmit.style.display = 'none';
   isFlipped = false;
+  cardShowsBack = false;
 }
 
 const chooseBtn = document.getElementById('choose-card-btn');
@@ -477,11 +499,18 @@ const complimentPanel = document.getElementById('compliment-panel');
 const complimentText = document.getElementById('compliment-text');
 const complimentSubmit = document.getElementById('compliment-submit');
 let isFlipped = false;
+// Whether the lifted card should render back-side-up. Distinct from isFlipped:
+// isFlipped also gates the live text-editing overlay (caret blink, panel
+// tracking) and turns off the moment "Klaar" is clicked, but the card itself
+// must keep showing its (now-stamped, addressed) back all the way through
+// send — flipping it to the front mid-animation would be jarring.
+let cardShowsBack = false;
 const FLIP_Y = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 1, 0), Math.PI);
 const ROLL_Z = new T.Quaternion().setFromAxisAngle(new T.Vector3(0, 0, 1), Math.PI / 2);
 const ROLL_Z_INV = ROLL_Z.clone().invert();
 chooseBtn.addEventListener('click', () => {
   isFlipped = true;
+  cardShowsBack = true;
   chooseBtn.style.display = 'none';
   complimentSubmit.style.display = 'block';
   if (document.documentElement.classList.contains('is-touch')) {
@@ -509,30 +538,65 @@ complimentText.addEventListener('mousedown', () => {
   window.addEventListener('mousemove', onMove);
   window.addEventListener('mouseup', () => { selectingDrag = false; window.removeEventListener('mousemove', onMove); refreshCard(true); }, { once: true });
 });
-const thanksOverlay = document.getElementById('thanks-overlay');
+// Reads a texture's source pixels back out as an <img>-usable URL, whether it
+// came from the TextureLoader (an HTMLImageElement with its own src) or was
+// drawn on a <canvas> (the placeholder swatches).
+function textureToImageSrc(tex) {
+  const img = tex && tex.image;
+  if (!img) return null;
+  if (img instanceof HTMLCanvasElement) return img.toDataURL('image/png');
+  return img.src || null;
+}
+// The back canvas is always drawn landscape-content-first, then rotated -90°
+// into the physical (portrait) card buffer — see renderBack — because the
+// real card mesh rolls 90° into landscape when flipped for writing. Reading
+// backCanvas's raw pixels out as-is would show that content sideways, so
+// undo the bake here: rotate +90° into a freshly-sized landscape canvas.
+function landscapeBackDataUrl() {
+  const w = backCanvas.width, h = backCanvas.height;
+  const out = document.createElement('canvas');
+  out.width = h;
+  out.height = w;
+  const octx = out.getContext('2d');
+  octx.translate(out.width / 2, out.height / 2);
+  octx.rotate(Math.PI / 2);
+  octx.drawImage(backCanvas, -w / 2, -h / 2);
+  return out.toDataURL('image/png');
+}
 let mailSending = false;
 let hasSent = false;
 complimentSubmit.addEventListener('click', () => {
   if (mailSending || !liftedCard) return;
   mailSending = true;
+  // Stop here, not just in startSend(): the shared animate() loop redraws a
+  // blinking caret every frame while isFlipped is true, which would otherwise
+  // keep racing with (and winning over) stampTick/addrTick's caret-free draws.
+  isFlipped = false;
   complimentPanel.style.display = 'none';
   complimentSubmit.style.display = 'none';
+  // From here on the card is just being watched, not edited — render straight
+  // from the text, with no caret and no selection highlight. Going through
+  // refreshCard() would still forward the textarea's live selectionStart/End
+  // (e.g. a word left selected from before clicking "Klaar"), baking that
+  // highlight into the stamp/address animation and the final sent image.
+  const finalText = complimentText.value;
   const startTs = performance.now();
   const STAMP_MS = 380;
   function stampTick(now) {
     stampProgress = Math.min(1, (now - startTs) / STAMP_MS);
-    refreshCard(false);
+    renderBack(finalText, null, null, null);
     if (stampProgress < 1) requestAnimationFrame(stampTick);
     else setTimeout(startAddress, 180);
   }
   requestAnimationFrame(stampTick);
 });
 function startAddress() {
+  const finalText = complimentText.value;
   const addrStart = performance.now();
   const ADDRESS_MS = 650;
   function addrTick(now) {
     addressProgress = Math.min(1, (now - addrStart) / ADDRESS_MS);
-    refreshCard(false);
+    renderBack(finalText, null, null, null);
     if (addressProgress < 1) requestAnimationFrame(addrTick);
     else setTimeout(startSend, 350);
   }
@@ -561,6 +625,10 @@ function startSend() {
   wake();
 }
 function finishSend() {
+  const frontSrc = textureToImageSrc(liftedCard.userData.frontTexture);
+  const frontIsLandscape = liftedCard.userData.orientation === 'landscape';
+  const backSrc = landscapeBackDataUrl();
+  const text = complimentText.value.trim();
   liftedCard.visible = false;
   liftedCard = null;
   cardAnimState = null;
@@ -570,8 +638,13 @@ function finishSend() {
   mailSending = false;
   hasSent = true;
   setButtonsForTier(null);
-  thanksOverlay.style.display = 'flex';
-  requestAnimationFrame(() => thanksOverlay.classList.add('is-visible'));
+  window.__navigateToThanks__ && window.__navigateToThanks__({
+    frontSrc,
+    frontIsLandscape,
+    backSrc,
+    text,
+    recipientName: RECIPIENT_NAME,
+  });
 }
 
 function toScreenXY(v3) {
@@ -628,12 +701,13 @@ stage._renderer.domElement.addEventListener('click', (ev) => {
   wake();
 });
 
-document.addEventListener('keydown', (ev) => {
+function onKeyDown(ev) {
   if (ev.key !== 'Escape') return;
   if (liftedCard) { returnCard(); wake(); return; }
   focusOnTier(null);
   wake();
-});
+}
+document.addEventListener('keydown', onKeyDown);
 
 // Touch devices: hide the rotate buttons (see CSS .is-touch) and let a horizontal drag
 // spin the selected tier live, 1:1 with the finger, like actually turning the rack.
@@ -703,15 +777,17 @@ canvasEl.addEventListener('mousedown', (e) => {
   mouseDown = true;
   dragStart(e.clientX, e.clientY);
 });
-window.addEventListener('mousemove', (e) => {
+function onWindowMouseMove(e) {
   if (!mouseDown) return;
   dragMove(e.clientX, e.clientY);
-});
-window.addEventListener('mouseup', () => {
+}
+function onWindowMouseUp() {
   if (!mouseDown) return;
   mouseDown = false;
   dragEnd();
-});
+}
+window.addEventListener('mousemove', onWindowMouseMove);
+window.addEventListener('mouseup', onWindowMouseUp);
 
 // Physically spins one tier by one pocket step, easing toward the target each frame.
 window.rotateTierImages = function (tierIndex, dir) {
@@ -776,7 +852,7 @@ function animate() {
       liftPos.addScaledVector(up, 0.045);
     }
     liftQuat.copy(camera.quaternion);
-    if (isFlipped) liftQuat.multiply(FLIP_Y).multiply(ROLL_Z);
+    if (cardShowsBack) liftQuat.multiply(FLIP_Y).multiply(ROLL_Z);
     else if (liftedCard.userData.orientation === 'landscape') liftQuat.multiply(ROLL_Z_INV);
     if (isFlipped) {
       // On mobile the compliment panel is a plain fixed form (see CSS), so skip
@@ -839,3 +915,11 @@ function animate() {
   rafHandle = stillActive ? requestAnimationFrame(animate) : null;
 }
 wake();
+
+window.__rackTeardown__ = () => {
+  window.removeEventListener('resize', wake);
+  window.removeEventListener('mousemove', onWindowMouseMove);
+  window.removeEventListener('mouseup', onWindowMouseUp);
+  document.removeEventListener('keydown', onKeyDown);
+  if (rafHandle !== null) { cancelAnimationFrame(rafHandle); rafHandle = null; }
+};
