@@ -218,7 +218,7 @@ function renderBack(text, caretIdx, selStart, selEnd) {
 renderBack('');
 const backMat = new T.MeshStandardMaterial({ name: 'kaart-achterzijde-materiaal', map: backTex, roughness: 0.9, metalness: 0 });
 
-function pocket(index, faceTexture, orientation, collector, worldMat) {
+function pocket(index, faceTexture, orientation, cardName, collector, worldMat) {
   const g = new T.Group();
   g.name = `vak-${index}`;
   const x = W / 2, lip = H * 0.42;
@@ -245,6 +245,7 @@ function pocket(index, faceTexture, orientation, collector, worldMat) {
   card.castShadow = true;
   card.userData.isCard = true;
   card.userData.orientation = orientation;
+  card.userData.cardName = cardName;
   card.position.set(0, 0.012 + 0.147 / 2 - 0.004, 0.009);
   card.rotation.x = 0.055;
   const isLandscape = orientation === 'landscape';
@@ -299,6 +300,14 @@ function imageEntry(i) {
   return typeof raw === 'string' ? { url: raw, orientation: 'portrait' } : { url: raw.url, orientation: raw.orientation || 'portrait' };
 }
 
+// A card's "name" is its design filename without extension, e.g. "7" for
+// /assets/cards/designs/7.png — the only stable identifier we have per design.
+function cardNameFromUrl(url) {
+  if (!url) return null;
+  const file = url.split('/').pop() || '';
+  return file.replace(/\.[^.]+$/, '');
+}
+
 const texLoader = new T.TextureLoader();
 function loadTexture(url) {
   return new Promise((resolve) => {
@@ -340,8 +349,9 @@ const faceEntries = await Promise.all(
   Array.from({ length: TOTAL_POCKETS }, (_, i) => {
     const entry = imageEntry(i);
     const landscape = entry.orientation === 'landscape';
-    if (entry.url) return loadTexture(entry.url).then((t) => ({ texture: t || placeholderTexture(i, landscape), orientation: entry.orientation }));
-    return Promise.resolve({ texture: placeholderTexture(i, landscape), orientation: entry.orientation });
+    const cardName = cardNameFromUrl(entry.url) || `placeholder-${i}`;
+    if (entry.url) return loadTexture(entry.url).then((t) => ({ texture: t || placeholderTexture(i, landscape), orientation: entry.orientation, cardName }));
+    return Promise.resolve({ texture: placeholderTexture(i, landscape), orientation: entry.orientation, cardName });
   }),
 );
 
@@ -390,7 +400,7 @@ TIERS.forEach((y, ti) => {
       new T.Vector3(1, 1, 1),
     );
     const pocketWorldMat = armMat.clone().multiply(pocketLocalMat);
-    const p = pocket(`${ti + 1}-${i + 1}`, entry.texture, entry.orientation, collector, pocketWorldMat);
+    const p = pocket(`${ti + 1}-${i + 1}`, entry.texture, entry.orientation, entry.cardName, collector, pocketWorldMat);
     p.position.set(0, 0.024, R_BACK);
     p.rotation.x = 0.1;
     arm.add(p);
@@ -627,6 +637,7 @@ function startSend() {
 function finishSend() {
   const frontSrc = textureToImageSrc(liftedCard.userData.frontTexture);
   const frontIsLandscape = liftedCard.userData.orientation === 'landscape';
+  const cardName = liftedCard.userData.cardName;
   const backSrc = landscapeBackDataUrl();
   const text = complimentText.value.trim();
   liftedCard.visible = false;
@@ -644,6 +655,7 @@ function finishSend() {
     backSrc,
     text,
     recipientName: RECIPIENT_NAME,
+    cardName,
   });
 }
 

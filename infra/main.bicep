@@ -23,6 +23,7 @@ param staticWebAppLocation string = 'westeurope'
 param additionalCorsAllowedOrigins array = []
 
 var resourceToken = toLower('${environmentName}')
+var storageAccountName = toLower('stcaesarcompl${resourceToken}')
 var tags = {
   environment: environmentName
   application: 'caesar-compliment'
@@ -78,6 +79,18 @@ module webApp 'modules/web-app.bicep' = {
       ['https://${staticWebApp.outputs.defaultHostName}'],
       additionalCorsAllowedOrigins
     )
+    storageAccountName: storageAccountName
+    tags: tags
+  }
+}
+
+module storageAccount 'modules/storage-account.bicep' = {
+  name: 'storage-account'
+  params: {
+    name: storageAccountName
+    location: location
+    tableDataContributorPrincipalId: webApp.outputs.principalId
+    blobDataReaderPrincipalId: webApp.outputs.principalId
     tags: tags
   }
 }

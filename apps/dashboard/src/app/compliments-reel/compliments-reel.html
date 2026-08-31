@@ -1,0 +1,33 @@
+@if (compliments.length === 0) {
+  <p class="empty">No compliments yet.</p>
+} @else {
+  <div class="reel-stage">
+    @for (card of cards(); track card.id) {
+      <div
+        class="reel-card"
+        [class.is-landscape-front]="card.frontIsLandscape"
+        [style.--in-x.px]="card.inX"
+        [style.--in-y.px]="card.inY"
+        [style.--in-rot.deg]="card.inRot"
+        [style.--out-x.px]="card.outX"
+        [style.--out-y.px]="card.outY"
+        [style.--out-rot.deg]="card.outRot"
+      >
+        <div class="reel-card-flip">
+          <img
+            class="reel-card-face reel-card-front"
+            [class.is-landscape-face]="card.frontIsLandscape"
+            [class.is-portrait-face]="!card.frontIsLandscape"
+            [src]="card.frontSrc"
+            alt="Voorkant van de kaart"
+          />
+          <img
+            class="reel-card-face reel-card-back is-portrait-face"
+            [src]="card.backSrc"
+            alt="Achterkant van de kaart met compliment"
+          />
+        </div>
+      </div>
+    }
+  </div>
+}

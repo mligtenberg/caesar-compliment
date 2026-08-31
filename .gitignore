@@ -53,3 +53,12 @@ bin/
 obj/
 *.user
 .vs/
+
+# generated from config/local.json - see tools/generate-local-env.mjs
+apps/frontend/src/environments/environment.development.ts
+
+# captured session data with real employee PII - never commit
+*.har
+mijncaesar_users.csv
+mijncaesar_users.json
+tools/extract-mijncaesar-users.mjs

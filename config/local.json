@@ -1,0 +1,16 @@
+{
+  "backend": {
+    "tenantId": "c53567a1-4f5a-4d88-a3a4-c20d15cca883",
+    "clientId": "88edd827-531c-4044-852c-8cc8fe493c63",
+    "baseUrl": "http://localhost:5041"
+  },
+  "frontend": {
+    "tenantId": "c53567a1-4f5a-4d88-a3a4-c20d15cca883",
+    //"clientId": "2884ee29-a28e-4cab-83fe-2dfb80b1ef5f",
+    "clientId": "2884ee29-a28e-4cab-83fe-2dfb80b1ef5f",
+    "origin": "http://localhost:4200"
+  },
+  "dashboard": {
+    "origin": "http://localhost:4201"
+  }
+}

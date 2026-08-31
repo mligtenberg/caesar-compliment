@@ -6,6 +6,7 @@ export interface ThanksData {
   backSrc: string;
   text: string;
   recipientName: string;
+  cardName: string;
 }
 
 @Injectable({ providedIn: 'root' })

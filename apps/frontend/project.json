@@ -6,8 +6,32 @@
   "sourceRoot": "apps/frontend/src",
   "tags": [],
   "targets": {
+    "generate-local-env": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/generate-local-env.mjs",
+        "cwd": "{workspaceRoot}"
+      },
+      "inputs": [
+        "{workspaceRoot}/config/local.json"
+      ],
+      "outputs": [
+        "{projectRoot}/src/environments/environment.development.ts"
+      ]
+    },
+    "watch-local-env": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "node tools/generate-local-env.mjs --watch",
+        "cwd": "{workspaceRoot}"
+      }
+    },
     "build": {
       "executor": "@angular/build:application",
+      "dependsOn": [
+        "generate-local-env"
+      ],
       "outputs": [
         "{options.outputPath}"
       ],
@@ -58,6 +82,9 @@
     "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
+      "dependsOn": [
+        "watch-local-env"
+      ],
       "defaultConfiguration": "development",
       "configurations": {
         "production": {

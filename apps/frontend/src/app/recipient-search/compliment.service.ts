@@ -2,25 +2,30 @@ import { Injectable, inject } from '@angular/core';
 import { MsalService } from '@azure/msal-angular';
 import { apiRequest } from '../auth-config';
 import { environment } from '../../environments/environment';
-import { Recipient } from './recipient.model';
+
+export interface ComplimentRequest {
+  recipientId: string;
+  recipientName: string;
+  cardName: string;
+  text: string;
+}
 
 @Injectable({ providedIn: 'root' })
-export class GraphRecipientService {
+export class ComplimentService {
   private readonly msalService = inject(MsalService);
 
-  async searchRecipients(term: string): Promise<Recipient[]> {
+  async send(compliment: ComplimentRequest): Promise<void> {
     const accessToken = await this.acquireAccessToken();
-    if (!accessToken) return [];
+    if (!accessToken) return;
 
-    const trimmed = term.trim();
-    const url = `${environment.api.baseUrl}/suggestions?term=${encodeURIComponent(trimmed)}`;
-
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${accessToken}` },
+    await fetch(`${environment.api.baseUrl}/compliments`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(compliment),
     });
-    if (!response.ok) return [];
-
-    return (await response.json()) as Recipient[];
   }
 
   private async acquireAccessToken(): Promise<string | undefined> {

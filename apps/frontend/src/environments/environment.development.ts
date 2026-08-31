@@ -1,14 +1,15 @@
-// Development environment. Replace with your own Entra app registration
-// (or a shared dev registration) to be able to sign in locally.
+// GENERATED FILE - do not edit directly.
+// Source of truth: config/local.json (shared with the backend, see Program.cs).
+// Regenerate with: node tools/generate-local-env.mjs
 export const environment = {
   production: false,
   entra: {
-    clientId: 'ccbc9608-8ef7-4c52-8df8-f87640818ae3',
-    tenantId: '4c64df47-4722-4fe4-9834-f082c8d10a0c',
+    clientId: '2884ee29-a28e-4cab-83fe-2dfb80b1ef5f',
+    tenantId: 'c53567a1-4f5a-4d88-a3a4-c20d15cca883',
     redirectUri: 'http://localhost:4200',
   },
   api: {
     baseUrl: 'http://localhost:5041',
-    scope: 'api://<backend-app-registration-client-id>/access_as_user',
+    scope: 'api://88edd827-531c-4044-852c-8cc8fe493c63/access_as_user',
   },
 };

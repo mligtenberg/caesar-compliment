@@ -1,0 +1,109 @@
+{
+  "name": "dashboard",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/dashboard/src",
+  "tags": [],
+  "targets": {
+    "generate-local-env": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "node tools/generate-local-env.mjs",
+        "cwd": "{workspaceRoot}"
+      },
+      "inputs": ["{workspaceRoot}/config/local.json"],
+      "outputs": ["{projectRoot}/src/environments/environment.development.ts"]
+    },
+    "watch-local-env": {
+      "executor": "nx:run-commands",
+      "continuous": true,
+      "options": {
+        "command": "node tools/generate-local-env.mjs --watch",
+        "cwd": "{workspaceRoot}"
+      }
+    },
+    "build": {
+      "executor": "@angular/build:application",
+      "dependsOn": ["generate-local-env"],
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "outputPath": "dist/apps/dashboard",
+        "browser": "apps/dashboard/src/main.ts",
+        "tsConfig": "apps/dashboard/tsconfig.app.json",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/dashboard/public"
+          }
+        ],
+        "styles": ["apps/dashboard/src/styles.css"]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "4kb",
+              "maximumError": "8kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "fileReplacements": [
+            {
+              "replace": "apps/dashboard/src/environments/environment.ts",
+              "with": "apps/dashboard/src/environments/environment.development.ts"
+            }
+          ]
+        }
+      }
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "dependsOn": ["watch-local-env"],
+      "defaultConfiguration": "development",
+      "options": {
+        "port": 4201
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "dashboard:build:production"
+        },
+        "development": {
+          "buildTarget": "dashboard:build:development"
+        }
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "test": {
+      "executor": "@angular/build:unit-test",
+      "options": {
+        "watch": false
+      }
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "dashboard:build",
+        "port": 4201,
+        "staticFilePath": "dist/apps/dashboard/browser",
+        "spa": true
+      }
+    }
+  }
+}

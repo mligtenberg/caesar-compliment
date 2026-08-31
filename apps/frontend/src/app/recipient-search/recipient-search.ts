@@ -3,7 +3,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, from, of, switchMap } from 'rxjs';
-import { GraphRecipientService } from './graph-recipient.service';
+import { ApiClientService } from '../api-client.service';
 import { Recipient } from './recipient.model';
 
 @Component({
@@ -13,7 +13,7 @@ import { Recipient } from './recipient.model';
   styleUrl: './recipient-search.css',
 })
 export class RecipientSearch {
-  private readonly graphRecipients = inject(GraphRecipientService);
+  private readonly apiClient = inject(ApiClientService);
 
   protected readonly searchTerm = signal('');
 
@@ -22,7 +22,7 @@ export class RecipientSearch {
       debounceTime(250),
       distinctUntilChanged(),
       switchMap((term) =>
-        from(this.graphRecipients.searchRecipients(term)).pipe(
+        from(this.apiClient.searchRecipients(term)).pipe(
           catchError(() => of<Recipient[]>([]))
         )
       )

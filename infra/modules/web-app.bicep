@@ -14,6 +14,9 @@ param appInsightsConnectionString string
 @description('Allowed CORS origins for the frontend')
 param corsAllowedOrigins array = []
 
+@description('Name of the Storage Account backing table storage')
+param storageAccountName string
+
 @description('Tags to apply to the resource')
 param tags object = {}
 
@@ -46,6 +49,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'WEBSITE_RUN_FROM_PACKAGE'
           value: '1'
+        }
+        {
+          name: 'Storage__AccountName'
+          value: storageAccountName
         }
       ]
     }

@@ -2,6 +2,7 @@ import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, Input, OnDestroy, sig
 import { ActivatedRoute, Router } from '@angular/router';
 import { PostcardImage, POSTCARD_IMAGES } from './postcard-images';
 import { ThanksData, ThanksDataService } from '../thanks-overlay/thanks-data.service';
+import { ApiClientService } from '../api-client.service';
 
 declare global {
   interface Window {
@@ -36,7 +37,8 @@ export class PostcardRack implements AfterViewInit, OnDestroy {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
-    private readonly thanksData: ThanksDataService
+    private readonly thanksData: ThanksDataService,
+    private readonly apiClient: ApiClientService
   ) {}
 
   ngAfterViewInit(): void {
@@ -46,6 +48,14 @@ export class PostcardRack implements AfterViewInit, OnDestroy {
 
     window.__navigateToThanks__ = (data) => {
       this.thanksData.set(data);
+      if (this.recipientId) {
+        this.apiClient.send({
+          recipientId: this.recipientId,
+          recipientName: data.recipientName,
+          cardName: data.cardName,
+          text: data.text,
+        });
+      }
       this.router.navigateByUrl('/thanks');
     };
 
