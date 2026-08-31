@@ -1,0 +1,55 @@
+:host {
+  display: contents;
+}
+
+/* Sits behind the featured card (which carries z-index: 1) and never takes
+   input - purely decorative, and hidden from assistive tech via aria-hidden. */
+.falling-layer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.falling-card {
+  position: absolute;
+  top: 0;
+  left: var(--left);
+  width: var(--w);
+  aspect-ratio: 96 / 138;
+  object-fit: cover;
+  border-radius: 6px;
+  opacity: var(--op);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+  /* transform-only animation, so each card stays on its own compositor layer
+     and the whole layer costs no layout or paint work per frame. */
+  will-change: transform;
+  animation: falling-card-drop var(--dur) linear var(--delay) infinite;
+}
+
+/* Backs (and any landscape front artwork) are drawn landscape already - see
+   renderFinishedPostcardBackLandscape - so they only need the box swapped,
+   never a corrective rotation, which would fight the tumble below. */
+.falling-card.is-landscape {
+  width: calc(var(--w) * 138 / 96);
+  aspect-ratio: 138 / 96;
+}
+
+/* Starts and ends well outside the viewport so cards never pop in or out. */
+@keyframes falling-card-drop {
+  from {
+    transform: translate3d(0, -40vh, 0) rotate(var(--spin-from));
+  }
+  to {
+    transform: translate3d(var(--drift), 140vh, 0) rotate(var(--spin-to));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .falling-card {
+    animation: none;
+    /* Hold a static scatter rather than freezing every card at the top. */
+    transform: translate3d(0, 40vh, 0) rotate(var(--spin-from));
+  }
+}

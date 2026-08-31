@@ -28,6 +28,9 @@
 /* Handles position/tumble/scale/opacity for the whole flight. The frame
    itself is a fixed size throughout - see :host. */
 .reel-card {
+  position: relative;
+  /* Above the drifting background layer, which sits at z-index 0. */
+  z-index: 1;
   width: var(--card-w);
   height: var(--card-h);
   perspective: 1600px;

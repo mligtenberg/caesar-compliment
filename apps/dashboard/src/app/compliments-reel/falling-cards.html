@@ -1,0 +1,18 @@
+<div class="falling-layer" aria-hidden="true">
+  @for (card of cards(); track card.id) {
+    <img
+      class="falling-card"
+      [class.is-landscape]="card.landscape"
+      [src]="card.src"
+      alt=""
+      [style.--left]="card.left"
+      [style.--w]="card.width"
+      [style.--drift]="card.drift"
+      [style.--dur]="card.duration"
+      [style.--delay]="card.delay"
+      [style.--spin-from]="card.spinFrom"
+      [style.--spin-to]="card.spinTo"
+      [style.--op]="card.opacity"
+    />
+  }
+</div>

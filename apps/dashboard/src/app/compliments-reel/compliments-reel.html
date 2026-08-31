@@ -2,6 +2,7 @@
   <p class="empty">No compliments yet.</p>
 } @else {
   <div class="reel-stage">
+    <app-falling-cards [compliments]="compliments" />
     @for (card of cards(); track card.id) {
       <div
         class="reel-card"

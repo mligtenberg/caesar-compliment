@@ -2,6 +2,7 @@ import { Component, Input, OnChanges, OnDestroy, SimpleChanges, signal } from '@
 import { Compliment } from '../compliment.model';
 import { postcardFrontIsLandscape } from './postcard-images';
 import { renderFinishedPostcardBack } from './postcard-back-renderer';
+import { FallingCards } from './falling-cards';
 
 const CARD_DURATION_MS = 5000;
 const CYCLE_DURATION_MS = 60000;
@@ -69,6 +70,7 @@ function randomFlight(): Pick<ReelCard, 'inX' | 'inY' | 'inRot' | 'outX' | 'outY
   selector: 'app-compliments-reel',
   templateUrl: './compliments-reel.html',
   styleUrl: './compliments-reel.css',
+  imports: [FallingCards],
 })
 export class ComplimentsReel implements OnChanges, OnDestroy {
   @Input() compliments: Compliment[] = [];
