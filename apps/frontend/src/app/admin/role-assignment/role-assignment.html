@@ -17,7 +17,13 @@
   @if (suggestions().length > 0) {
     <ul class="suggestions">
       @for (user of suggestions(); track user.id) {
-        <li (click)="selectUser(user)">
+        <li
+          tabindex="0"
+          role="button"
+          (click)="selectUser(user)"
+          (keydown.enter)="selectUser(user)"
+          (keydown.space)="selectUser(user)"
+        >
           @if (avatarUrls()[user.id]) {
             <img class="avatar" [src]="avatarUrls()[user.id]" alt="" />
           } @else {

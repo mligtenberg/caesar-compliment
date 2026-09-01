@@ -20,7 +20,13 @@
     </thead>
     <tbody>
       @for (compliment of compliments(); track compliment.senderId) {
-        <tr (click)="select(compliment)">
+        <tr
+          tabindex="0"
+          role="button"
+          (click)="select(compliment)"
+          (keydown.enter)="select(compliment)"
+          (keydown.space)="select(compliment)"
+        >
           <td>{{ compliment.recipientName }}</td>
           <td>{{ compliment.senderName }}</td>
           <td class="compliment-text" [title]="compliment.text">{{ compliment.text }}</td>
@@ -48,7 +54,15 @@
 }
 
 @if (selected(); as compliment) {
-  <div class="modal-backdrop" (click)="close()">
+  <div
+    class="modal-backdrop"
+    tabindex="0"
+    role="button"
+    (click)="close()"
+    (keydown.enter)="close()"
+    (keydown.space)="close()"
+  >
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
     <div class="modal" (click)="$event.stopPropagation()">
       <button type="button" class="modal-close" (click)="close()" aria-label="Sluiten">&times;</button>
       <dl>

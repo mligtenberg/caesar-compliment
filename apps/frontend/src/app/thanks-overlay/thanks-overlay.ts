@@ -1,4 +1,4 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { ThanksDataService } from './thanks-data.service';
 
@@ -8,14 +8,10 @@ import { ThanksDataService } from './thanks-data.service';
   styleUrl: './thanks-overlay.css',
 })
 export class ThanksOverlay implements OnInit {
-  protected readonly thanks;
+  private readonly thanksData = inject(ThanksDataService);
+  private readonly router = inject(Router);
 
-  constructor(
-    private readonly thanksData: ThanksDataService,
-    private readonly router: Router
-  ) {
-    this.thanks = this.thanksData.data;
-  }
+  protected readonly thanks = this.thanksData.data;
 
   ngOnInit(): void {
     if (!this.thanks()) {

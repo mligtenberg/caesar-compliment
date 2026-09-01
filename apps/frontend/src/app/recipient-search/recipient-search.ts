@@ -16,6 +16,7 @@ import { Recipient } from './recipient.model';
 export class RecipientSearch {
   private readonly apiClient = inject(ApiClientService);
   private readonly avatarService = inject(AvatarService);
+  private readonly router = inject(Router);
 
   protected readonly searchTerm = signal('');
   protected readonly avatarUrls = signal<Record<string, string | null>>({});
@@ -33,7 +34,8 @@ export class RecipientSearch {
     { initialValue: [] as Recipient[] }
   );
 
-  constructor(route: ActivatedRoute, private readonly router: Router) {
+  constructor() {
+    const route = inject(ActivatedRoute);
     const previousName = route.snapshot.queryParamMap.get('recipientName');
     if (previousName) this.searchTerm.set(previousName);
 

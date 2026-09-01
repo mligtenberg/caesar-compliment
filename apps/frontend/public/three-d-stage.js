@@ -114,7 +114,7 @@
         // Re-attached after a removal — resume what disconnected stopped.
         if (this._renderer) {
           this._renderer.setAnimationLoop(this._loop);
-          this._ro && this._ro.observe(this);
+          if (this._ro) this._ro.observe(this);
         }
         return;
       }

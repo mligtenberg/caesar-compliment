@@ -1,5 +1,3 @@
-import * as THREE from 'three';
-
 // This module is re-fetched (via a cache-busted URL) every time the rack view
 // remounts, since ES modules only ever evaluate once per exact URL otherwise.
 // The previous instance's own global listeners and render loop would
@@ -69,7 +67,7 @@ const backTex = new T.CanvasTexture(backCanvas);
 backTex.colorSpace = T.SRGBColorSpace;
 // Lays text out exactly like wrapText but keeps each line's source character range,
 // so a caret/selection index can be mapped back to an (x, y) on the canvas.
-function layoutText(ctx, text, maxWidth, lineHeight) {
+function layoutText(ctx, text, maxWidth) {
   const lines = [];
   let idx = 0;
   const paragraphs = text.split('\n');
@@ -191,7 +189,7 @@ function renderBack(text, caretIdx, selStart, selEnd) {
   }
   backCtx.font = TEXT_FONT;
   const maxWidth = lw * 0.55 - 100;
-  const lines = layoutText(backCtx, text || '', maxWidth, TEXT_LINE_H);
+  const lines = layoutText(backCtx, text || '', maxWidth);
   if (selStart != null && selEnd != null && selStart !== selEnd) {
     const from = Math.min(selStart, selEnd), to = Math.max(selStart, selEnd);
     backCtx.fillStyle = 'rgba(20, 48, 98, 0.28)';
@@ -657,15 +655,17 @@ function finishSend() {
   mailSending = false;
   hasSent = true;
   setButtonsForTier(null);
-  window.__navigateToThanks__ && window.__navigateToThanks__({
-    frontSrc,
-    frontIsLandscape,
-    backSrc,
-    text,
-    recipientName: RECIPIENT_NAME,
-    cardName,
-    hideFromDashboard: pendingHideFromDashboard,
-  });
+  if (window.__navigateToThanks__) {
+    window.__navigateToThanks__({
+      frontSrc,
+      frontIsLandscape,
+      backSrc,
+      text,
+      recipientName: RECIPIENT_NAME,
+      cardName,
+      hideFromDashboard: pendingHideFromDashboard,
+    });
+  }
 }
 
 function toScreenXY(v3) {

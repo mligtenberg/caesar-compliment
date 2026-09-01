@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, Input, OnDestroy, signal } from '@angular/core';
+import { AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, Input, OnDestroy, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PostcardImage, POSTCARD_IMAGES } from './postcard-images';
 import { ThanksData, ThanksDataService } from '../thanks-overlay/thanks-data.service';
@@ -27,19 +27,17 @@ export class PostcardRack implements AfterViewInit, OnDestroy {
 
   private rackScript: HTMLScriptElement | null = null;
 
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly thanksData = inject(ThanksDataService);
+  private readonly apiClient = inject(ApiClientService);
+
   private readonly updateTouchMode = () => {
     const narrowTouch =
       (('ontouchstart' in window) || navigator.maxTouchPoints > 0) &&
       window.innerWidth < 640;
     document.documentElement.classList.toggle('is-touch', narrowTouch);
   };
-
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router,
-    private readonly thanksData: ThanksDataService,
-    private readonly apiClient: ApiClientService
-  ) {}
 
   ngAfterViewInit(): void {
     const params = this.route.snapshot.queryParamMap;
