@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Azure.Core;
 using Azure.Data.Tables;
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -85,6 +86,29 @@ builder.Services.AddSingleton(_ =>
     return new BlobServiceClient(new Uri($"https://{accountName}.blob.core.windows.net"), credential);
 });
 
+builder.Services.AddMemoryCache();
+
+builder.Services.AddSingleton<TokenCredential>(_ =>
+{
+    // Local dev authenticates Graph with an app registration's client secret (set via
+    // `dotnet user-secrets`, never committed); deployed environments use the web app's
+    // own managed identity, which must be granted the Graph API's User.Read.All
+    // application permission (this can't be expressed in Bicep - see infra/README.md).
+    var tenantId = builder.Configuration["backend:tenantId"];
+    var clientId = builder.Configuration["backend:clientId"];
+    var clientSecret = builder.Configuration["backend:clientSecret"];
+    if (!string.IsNullOrEmpty(clientSecret))
+    {
+        return new ClientSecretCredential(tenantId, clientId, clientSecret);
+    }
+
+    return new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+});
+builder.Services.AddHttpClient<IAvatarService, EntraAvatarService>(client =>
+{
+    client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");
+});
+
 builder.Services.AddSingleton<IComplimentsRepository, ComplimentsRepository>();
 builder.Services.AddSingleton<IRecipientsRepository, RecipientsRepository>();
 
@@ -137,6 +161,24 @@ userPages.MapGet("/suggestions", async (
 })
 .WithName("GetSuggestions");
 
+userPages.MapGet("/suggestions/avatar/{id}", async (string id, IRecipientsRepository recipients, IAvatarService avatars, ILogger<Program> logger) =>
+{
+    var upn = recipients.GetUpnById(id);
+    if (upn is null) return Results.NotFound();
+
+    try
+    {
+        var photo = await avatars.GetAvatarAsync(upn);
+        return photo is null ? Results.NotFound() : Results.Bytes(photo.Value.Bytes, photo.Value.ContentType);
+    }
+    catch (GraphUnavailableException ex)
+    {
+        logger.LogError(ex, "Failed to fetch avatar for recipient {RecipientId} from Microsoft Graph.", id);
+        return Results.StatusCode(StatusCodes.Status502BadGateway);
+    }
+})
+.WithName("GetRecipientAvatar");
+
 userPages.MapPost("/compliments", async (ComplimentRequest compliment, ClaimsPrincipal user, IComplimentsRepository compliments) =>
 {
     await compliments.UpsertAsync(user.GetObjectId(), compliment);
@@ -168,6 +210,6 @@ record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
 public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
 
-record Recipient(string Id, string Name, string JobTitle);
+record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl);
 
 record ComplimentRequest(string RecipientId, string RecipientName, string CardName, string Text);

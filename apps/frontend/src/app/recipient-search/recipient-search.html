@@ -12,8 +12,15 @@
     @for (recipient of suggestions(); track recipient.id) {
       <li>
         <button type="button" class="suggestion" (click)="selectRecipient(recipient)">
-          <span class="suggestion-name">{{ recipient.name }}</span>
-          <span class="suggestion-jobtitle">{{ recipient.jobTitle }}</span>
+          @if (avatarUrls()[recipient.id]) {
+            <img class="avatar" [src]="avatarUrls()[recipient.id]" alt="" />
+          } @else {
+            <span class="avatar avatar-fallback">{{ initials(recipient.name) }}</span>
+          }
+          <span class="suggestion-text">
+            <span class="suggestion-name">{{ recipient.name }}</span>
+            <span class="suggestion-jobtitle">{{ recipient.jobTitle }}</span>
+          </span>
         </button>
       </li>
     } @empty {

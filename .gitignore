@@ -61,4 +61,5 @@ apps/frontend/src/environments/environment.development.ts
 *.har
 mijncaesar_users.csv
 mijncaesar_users.json
+exportUsers_2026-9-1.csv
 tools/extract-mijncaesar-users.mjs
