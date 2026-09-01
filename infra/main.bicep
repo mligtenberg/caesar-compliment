@@ -7,7 +7,7 @@ param environmentName string
 param location string = resourceGroup().location
 
 @description('SKU for the App Service Plan')
-param appServicePlanSku string = 'B1'
+param appServicePlanSku string = 'P0v4'
 
 @description('SKU for the Static Web App')
 @allowed([
