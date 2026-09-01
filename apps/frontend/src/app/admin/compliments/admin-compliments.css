@@ -50,7 +50,6 @@ h1 {
 
 .compliments-table {
   width: 100%;
-  max-width: 900px;
   border-collapse: collapse;
   table-layout: fixed;
 }
@@ -61,13 +60,14 @@ h1 {
   padding: 10px 12px;
   border-bottom: 1px solid #dde5ef;
   vertical-align: middle;
+  overflow: hidden;
 }
 
 .compliments-table th:first-child,
 .compliments-table td:first-child,
 .compliments-table th:nth-child(2),
 .compliments-table td:nth-child(2) {
-  width: 160px;
+  width: 18%;
 }
 
 .compliments-table th:last-child,
@@ -75,7 +75,9 @@ h1 {
   width: 160px;
 }
 
-.compliment-text {
+.compliment-text,
+.compliments-table td:first-child,
+.compliments-table td:nth-child(2) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -126,6 +128,21 @@ h1 {
   display: flex;
   gap: 8px;
   margin-top: 20px;
+}
+
+.confirm-modal h2 {
+  margin-top: 0;
+}
+
+.cancel-btn {
+  border: 1px solid #dde5ef;
+  border-radius: 6px;
+  background: none;
+  color: #224f82;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 10px;
+  cursor: pointer;
 }
 
 .modal-backdrop {

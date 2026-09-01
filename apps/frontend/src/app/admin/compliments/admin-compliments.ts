@@ -17,6 +17,7 @@ export class AdminCompliments implements OnInit {
   protected readonly selected = signal<AdminCompliment | null>(null);
   protected readonly search = signal('');
   protected readonly adding = signal(false);
+  protected readonly pendingDelete = signal<AdminCompliment | null>(null);
 
   protected readonly filteredCompliments = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -73,14 +74,26 @@ export class AdminCompliments implements OnInit {
     }
   }
 
-  protected async delete(compliment: AdminCompliment): Promise<void> {
+  protected requestDelete(compliment: AdminCompliment): void {
+    this.pendingDelete.set(compliment);
+  }
+
+  protected cancelDelete(): void {
+    this.pendingDelete.set(null);
+  }
+
+  protected async confirmDelete(): Promise<void> {
+    const compliment = this.pendingDelete();
+    if (!compliment) return;
     this.error.set(null);
     try {
       await this.apiClient.deleteCompliment(compliment.senderId);
       if (this.selected()?.senderId === compliment.senderId) this.close();
+      this.pendingDelete.set(null);
       this.reload();
     } catch {
       this.error.set('Kon dit compliment niet verwijderen.');
+      this.pendingDelete.set(null);
     }
   }
 }

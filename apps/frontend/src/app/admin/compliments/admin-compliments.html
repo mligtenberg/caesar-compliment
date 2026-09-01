@@ -46,8 +46,8 @@
           (keydown.enter)="select(compliment)"
           (keydown.space)="select(compliment)"
         >
-          <td>{{ compliment.recipientName }}</td>
-          <td>{{ compliment.senderName }}</td>
+          <td [title]="compliment.recipientName">{{ compliment.recipientName }}</td>
+          <td [title]="compliment.senderName">{{ compliment.senderName }}</td>
           <td class="compliment-text" [title]="compliment.text">{{ compliment.text }}</td>
           <td class="actions">
             <button
@@ -61,7 +61,7 @@
             <button
               type="button"
               class="delete-btn"
-              (click)="$event.stopPropagation(); delete(compliment)"
+              (click)="$event.stopPropagation(); requestDelete(compliment)"
             >
               Verwijderen
             </button>
@@ -101,7 +101,32 @@
         >
           {{ compliment.hideFromDashboard ? 'Verborgen' : 'Verbergen' }}
         </button>
-        <button type="button" class="delete-btn" (click)="delete(compliment)">Verwijderen</button>
+        <button type="button" class="delete-btn" (click)="requestDelete(compliment)">Verwijderen</button>
+      </div>
+    </div>
+  </div>
+}
+
+@if (pendingDelete(); as compliment) {
+  <div
+    class="modal-backdrop"
+    tabindex="0"
+    role="button"
+    (click)="cancelDelete()"
+    (keydown.enter)="cancelDelete()"
+    (keydown.space)="cancelDelete()"
+  >
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+    <div class="modal confirm-modal" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+      <button type="button" class="modal-close" (click)="cancelDelete()" aria-label="Sluiten">&times;</button>
+      <h2>Compliment verwijderen?</h2>
+      <p>
+        Weet je zeker dat je het compliment van <strong>{{ compliment.senderName }}</strong> aan
+        <strong>{{ compliment.recipientName }}</strong> wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="cancel-btn" (click)="cancelDelete()">Annuleren</button>
+        <button type="button" class="delete-btn" (click)="confirmDelete()">Verwijderen</button>
       </div>
     </div>
   </div>

@@ -10,6 +10,7 @@ internal class RecipientsRepository : IRecipientsRepository
     private readonly string _localCsvPath;
     private IReadOnlyList<RecipientRow> _recipients = [];
     private IReadOnlyDictionary<string, string> _upnById = new Dictionary<string, string>();
+    private IReadOnlyDictionary<string, string> _firstNameById = new Dictionary<string, string>();
 
     public RecipientsRepository(BlobServiceClient blobServiceClient, IHostEnvironment environment)
     {
@@ -34,27 +35,30 @@ internal class RecipientsRepository : IRecipientsRepository
         using var stream = await blob.OpenReadAsync();
         using var reader = new StreamReader(stream);
 
-        await reader.ReadLineAsync(); // header: id,name,email,username,upn,company,team,klantteam
+        await reader.ReadLineAsync(); // header: id,name,firstname,email,username,upn,company,team,klantteam
 
         var recipients = new List<RecipientRow>();
         string? line;
         while ((line = await reader.ReadLineAsync()) is not null)
         {
             var fields = ParseCsvLine(line);
-            if (fields.Length < 6) continue;
+            if (fields.Length < 7) continue;
 
-            var companies = SplitToSet(fields[5], ',');
-            var teams = fields.Length > 6 ? SplitToSet(fields[6], ';') : [];
-            var klantTeams = fields.Length > 7 ? SplitToSet(fields[7], ';') : [];
+            var companies = SplitToSet(fields[6], ',');
+            var teams = fields.Length > 7 ? SplitToSet(fields[7], ';') : [];
+            var klantTeams = fields.Length > 8 ? SplitToSet(fields[8], ';') : [];
 
-            recipients.Add(new RecipientRow(fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], companies, teams, klantTeams));
+            recipients.Add(new RecipientRow(fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], companies, teams, klantTeams));
         }
 
         _recipients = recipients;
         _upnById = recipients.ToDictionary(r => r.Id, r => r.Upn);
+        _firstNameById = recipients.ToDictionary(r => r.Id, r => r.FirstName);
     }
 
     public string? GetUpnById(string id) => _upnById.GetValueOrDefault(id);
+
+    public string? GetFirstNameById(string id) => _firstNameById.GetValueOrDefault(id);
 
     public IReadOnlyList<Recipient> Search(string? term, string? viewerEmail, IReadOnlySet<string> excludedRecipientIds)
     {
@@ -126,6 +130,7 @@ internal class RecipientsRepository : IRecipientsRepository
     private sealed record RecipientRow(
         string Id,
         string Name,
+        string FirstName,
         string Email,
         string Username,
         string Upn,

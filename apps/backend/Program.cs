@@ -343,8 +343,26 @@ adminSend.MapPost("/", async (ComplimentRequest compliment, IComplimentsReposito
 // instead of a user sign-in.
 var external = app.MapGroup("/external").RequireAuthorization(ApiKeyAuthenticationDefaults.AuthenticationScheme);
 
-external.MapGet("/compliments", async (IComplimentsRepository compliments) =>
-    Results.Ok(await compliments.GetAllAsync()))
+external.MapGet("/compliments", async (IComplimentsRepository compliments, IRecipientsRepository recipients) =>
+{
+    var all = await compliments.GetAllAsync();
+
+    // The dashboard reel currently only shows a first name, sourced from the
+    // recipients CSV rather than the sender-supplied full name stored on the
+    // compliment - falls back to splitting that name if the recipient isn't found
+    // (e.g. removed since). RecipientDisplayName carries the full stored name
+    // alongside it for future dashboard work that needs the whole name.
+    var result = all.Select(c => new DashboardCompliment(
+        c.SenderId,
+        c.RecipientId,
+        recipients.GetFirstNameById(c.RecipientId) ?? c.RecipientName.Split(' ')[0],
+        c.RecipientName,
+        c.CardName,
+        c.Text,
+        c.HideFromDashboard));
+
+    return Results.Ok(result);
+})
 .WithName("GetAll");
 
 app.Run();
@@ -359,3 +377,5 @@ record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl);
 record ComplimentRequest(string RecipientId, string RecipientName, string CardName, string Text, bool HideFromDashboard = false);
 
 record AdminCompliment(string SenderId, string SenderName, string RecipientId, string RecipientName, string Text, bool HideFromDashboard);
+
+record DashboardCompliment(string SenderId, string RecipientId, string RecipientName, string RecipientDisplayName, string CardName, string Text, bool HideFromDashboard);
