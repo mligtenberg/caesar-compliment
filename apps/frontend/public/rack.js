@@ -470,6 +470,9 @@ function focusOnTier(tierIndex) {
   pulseTier = tierIndex;
   pulseStart = performance.now();
   tierRingMats.forEach((m, i) => m.color.set(i === tierIndex ? 0xa43d41 : 0x224f82));
+  if (note) note.textContent = tierIndex === null
+    ? 'Klik op een laag om in te zoomen'
+    : 'Selecteer de kaart die je wilt versturen';
   if (tierIndex === null) {
     camPosTarget.copy(homeCamPos);
     camLookTarget.copy(homeLookAt);
@@ -518,9 +521,12 @@ function liftCard(cardMesh) {
 function returnCard() {
   cardAnimState = 'in';
   chooseBtn.style.display = 'none';
+  if (note) note.style.display = '';
   complimentPanel.style.display = 'none';
   complimentSubmit.style.display = 'none';
   privacyCard.style.display = 'none';
+  complimentText.value = '';
+  if (complimentHint) complimentHint.textContent = '';
   isFlipped = false;
   cardShowsBack = false;
 }
@@ -546,6 +552,7 @@ chooseBtn.addEventListener('click', () => {
   isFlipped = true;
   cardShowsBack = true;
   chooseBtn.style.display = 'none';
+  if (note) note.style.display = 'none';
   complimentSubmit.style.display = 'block';
   privacyCard.style.display = 'block';
   if (document.documentElement.classList.contains('is-touch')) {
@@ -774,10 +781,27 @@ stage._renderer.domElement.addEventListener('click', (ev) => {
 });
 
 function onKeyDown(ev) {
-  if (ev.key !== 'Escape') return;
-  if (liftedCard) { returnCard(); wake(); return; }
-  focusOnTier(null);
-  wake();
+  if (ev.key === 'Escape') {
+    if (liftedCard) { returnCard(); wake(); return; }
+    focusOnTier(null);
+    wake();
+    return;
+  }
+  if (liftedCard) return;
+  if (ev.key === 'ArrowUp' || ev.key === 'ArrowDown') {
+    ev.preventDefault();
+    const dir = ev.key === 'ArrowUp' ? 1 : -1;
+    const current = selectedTier === null ? (dir === 1 ? -1 : TIERS.length) : selectedTier;
+    const next = Math.min(TIERS.length - 1, Math.max(0, current + dir));
+    focusOnTier(next);
+    wake();
+    return;
+  }
+  if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') {
+    if (selectedTier === null) return;
+    ev.preventDefault();
+    window.rotateTierImages(selectedTier, ev.key === 'ArrowLeft' ? -1 : 1);
+  }
 }
 document.addEventListener('keydown', onKeyDown);
 

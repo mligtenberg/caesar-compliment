@@ -66,11 +66,16 @@
     canvas { display: block; outline: none; }
     .note {
       position: absolute;
-      left: 16px;
-      bottom: 16px;
-      max-width: 60%;
-      font: 400 12px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      color: rgba(26, 25, 21, 0.55);
+      top: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 80%;
+      text-align: center;
+      font: 600 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #224f82;
+      background: rgba(241, 246, 250, 0.85);
+      padding: 6px 16px;
+      border-radius: 999px;
       user-select: none;
     }
     .err {
