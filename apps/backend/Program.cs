@@ -91,9 +91,12 @@ builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<TokenCredential>(_ =>
 {
     // Local dev authenticates Graph with an app registration's client secret (set via
-    // `dotnet user-secrets`, never committed); deployed environments use the web app's
-    // own managed identity, which must be granted the Graph API's User.Read.All
-    // application permission (this can't be expressed in Bicep - see infra/README.md).
+    // `dotnet user-secrets`, never committed). Deployed environments have no secret at
+    // all: this app registration trusts the web app's own system-assigned managed
+    // identity as a federated credential (configured out of band via Azure CLI, since
+    // the app registration and the managed identity live in different tenants - see
+    // infra/README.md), so the managed identity's own token is used as the client
+    // assertion to obtain tokens for this app registration instead.
     var tenantId = builder.Configuration["backend:tenantId"];
     var clientId = builder.Configuration["backend:clientId"];
     var clientSecret = builder.Configuration["backend:clientSecret"];
@@ -102,7 +105,13 @@ builder.Services.AddSingleton<TokenCredential>(_ =>
         return new ClientSecretCredential(tenantId, clientId, clientSecret);
     }
 
-    return new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+    var managedIdentity = new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+    return new ClientAssertionCredential(tenantId, clientId, async (ct) =>
+    {
+        var token = await managedIdentity.GetTokenAsync(
+            new TokenRequestContext(["api://AzureADTokenExchange/.default"]), ct);
+        return token.Token;
+    });
 });
 builder.Services.AddHttpClient<IAvatarService, EntraAvatarService>(client =>
 {

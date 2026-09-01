@@ -70,3 +70,27 @@ Required repository **variables**:
 | `AZURE_ENVIRONMENT_NAME`   | Passed as `environmentName` to `main.bicep` (defaults to `prod`) |
 
 The login principal needs `Contributor` on the resource group (to run the Bicep deployment and deploy the App Service/Static Web App content).
+
+## Backend Graph credential (manual, one-time)
+
+The backend calls Microsoft Graph as the `backend` app registration (see `config/local.json`), never with a client secret. Locally that's a `ClientSecretCredential` set via `dotnet user-secrets`; deployed, it's a `ClientAssertionCredential` that uses the web app's own system-assigned managed identity as the assertion source (see `apps/backend/Program.cs`).
+
+For that to work, the app registration must trust the managed identity as a federated credential. This can't be expressed in Bicep - the app registration (tenant `c53567a1-...`) and the managed identity (tenant `a990994f-...`, the tenant hosting this Azure subscription) live in *different* tenants, so it has to be the "Other issuer" federated credential type rather than Entra's same-tenant "trust a managed identity" wizard:
+
+```bash
+# Get the deployed web app's managed identity (run against the subscription hosting the infra)
+principalId=$(az webapp show --name <backend-app-name> --resource-group <resource-group> \
+  --query identity.principalId -o tsv)
+miTenantId=$(az account show --query tenantId -o tsv)
+
+# Add the federated credential on the backend app registration (run against the tenant
+# owning that app registration - `az login --tenant <app-registration-tenant>` first)
+az ad app federated-credential create --id <backend-app-registration-client-id> --parameters "{
+  \"name\": \"<backend-app-name>-managed-identity\",
+  \"issuer\": \"https://login.microsoftonline.com/${miTenantId}/v2.0\",
+  \"subject\": \"${principalId}\",
+  \"audiences\": [\"api://AzureADTokenExchange\"]
+}"
+```
+
+This only needs to run once per deployed environment (or again if the app is redeployed with a new managed identity, which resets its principal ID).
