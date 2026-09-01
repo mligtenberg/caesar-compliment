@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { AdminCompliment, ApiClientService } from '../../api-client.service';
 
 @Component({
@@ -13,6 +13,18 @@ export class AdminCompliments implements OnInit {
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
   protected readonly selected = signal<AdminCompliment | null>(null);
+  protected readonly search = signal('');
+
+  protected readonly filteredCompliments = computed(() => {
+    const query = this.search().trim().toLowerCase();
+    if (!query) return this.compliments();
+    return this.compliments().filter(
+      (compliment) =>
+        compliment.recipientName.toLowerCase().includes(query) ||
+        compliment.senderName.toLowerCase().includes(query) ||
+        compliment.text.toLowerCase().includes(query),
+    );
+  });
 
   ngOnInit(): void {
     this.reload();

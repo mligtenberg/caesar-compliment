@@ -4,10 +4,24 @@
   <p class="error">{{ error() }}</p>
 }
 
+@if (!loading() && compliments().length > 0) {
+  <div class="search-bar">
+    <input
+      type="search"
+      class="search-input"
+      placeholder="Zoek op ontvanger, afzender of compliment…"
+      [value]="search()"
+      (input)="search.set($any($event.target).value)"
+    />
+  </div>
+}
+
 @if (loading()) {
   <p>Laden…</p>
 } @else if (compliments().length === 0) {
   <p>Nog geen complimenten.</p>
+} @else if (filteredCompliments().length === 0) {
+  <p>Geen complimenten gevonden.</p>
 } @else {
   <table class="compliments-table">
     <thead>
@@ -19,7 +33,7 @@
       </tr>
     </thead>
     <tbody>
-      @for (compliment of compliments(); track compliment.senderId) {
+      @for (compliment of filteredCompliments(); track compliment.senderId) {
         <tr
           tabindex="0"
           role="button"
