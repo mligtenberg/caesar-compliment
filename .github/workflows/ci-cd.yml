@@ -51,6 +51,35 @@ jobs:
           path: dist/apps/frontend/browser
           retention-days: 7
 
+  build-dashboard:
+    name: Build dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm exec nx lint dashboard
+
+      - run: pnpm exec nx test dashboard
+
+      - run: pnpm exec nx build dashboard --configuration=production
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dashboard-dist
+          path: dist/apps/dashboard/browser
+          retention-days: 7
+
   build-backend:
     name: Build backend
     runs-on: ubuntu-latest
@@ -80,11 +109,12 @@ jobs:
   deploy-infra:
     name: Deploy infrastructure
     if: github.event_name != 'pull_request'
-    needs: [build-frontend, build-backend]
+    needs: [build-frontend, build-dashboard, build-backend]
     runs-on: ubuntu-latest
     outputs:
       backendName: ${{ steps.deploy.outputs.backendName }}
       frontendName: ${{ steps.deploy.outputs.frontendName }}
+      dashboardName: ${{ steps.deploy.outputs.dashboardName }}
     steps:
       - uses: actions/checkout@v4
 
@@ -158,5 +188,41 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: upload
           app_location: frontend-dist
+          skip_app_build: true
+          skip_api_build: true
+
+  deploy-dashboard:
+    name: Deploy dashboard
+    if: github.event_name != 'pull_request'
+    needs: deploy-infra
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dashboard-dist
+          path: dashboard-dist
+
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - id: token
+        run: |
+          az extension add --name staticwebapp --yes
+          deployment_token=$(az staticwebapp secrets list \
+            --name "${{ needs.deploy-infra.outputs.dashboardName }}" \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --query "properties.apiKey" -o tsv)
+          echo "::add-mask::$deployment_token"
+          echo "deployment_token=$deployment_token" >> "$GITHUB_OUTPUT"
+
+      - uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ steps.token.outputs.deployment_token }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: upload
+          app_location: dashboard-dist
           skip_app_build: true
           skip_api_build: true

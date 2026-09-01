@@ -68,6 +68,16 @@ module staticWebApp 'modules/static-web-app.bicep' = {
   }
 }
 
+module dashboardStaticWebApp 'modules/static-web-app.bicep' = {
+  name: 'dashboard-static-web-app'
+  params: {
+    name: 'stapp-caesar-compliment-dashboard-${resourceToken}'
+    location: staticWebAppLocation
+    skuName: staticWebAppSku
+    tags: tags
+  }
+}
+
 module webApp 'modules/web-app.bicep' = {
   name: 'web-app'
   params: {
@@ -76,7 +86,10 @@ module webApp 'modules/web-app.bicep' = {
     appServicePlanId: appServicePlan.outputs.id
     appInsightsConnectionString: appInsights.outputs.connectionString
     corsAllowedOrigins: concat(
-      ['https://${staticWebApp.outputs.defaultHostName}'],
+      [
+        'https://${staticWebApp.outputs.defaultHostName}'
+        'https://${dashboardStaticWebApp.outputs.defaultHostName}'
+      ],
       additionalCorsAllowedOrigins
     )
     storageAccountName: storageAccountName
@@ -99,3 +112,5 @@ output backendUrl string = 'https://${webApp.outputs.defaultHostName}'
 output backendName string = webApp.outputs.name
 output frontendUrl string = 'https://${staticWebApp.outputs.defaultHostName}'
 output frontendName string = staticWebApp.outputs.name
+output dashboardUrl string = 'https://${dashboardStaticWebApp.outputs.defaultHostName}'
+output dashboardName string = dashboardStaticWebApp.outputs.name

@@ -1,14 +1,14 @@
 # Infrastructure
 
-Bicep templates provisioning the Azure resources for `backend` and `frontend`:
+Bicep templates provisioning the Azure resources for `backend`, `frontend`, and `dashboard`:
 
 - Log Analytics workspace
 - Application Insights (workspace-based)
 - Linux App Service Plan
 - Linux App Service (`DOTNETCORE|10.0`) with system-assigned managed identity, hosting the `backend` API
-- Static Web App (`provider: None`, deployed via CLI/CI rather than a linked GitHub repo), hosting the `frontend`
+- Two Static Web Apps (`provider: None`, deployed via CLI/CI rather than a linked GitHub repo), hosting the `frontend` and the `dashboard`
 
-The backend's CORS is automatically opened to the Static Web App's URL, plus any origins listed in `additionalCorsAllowedOrigins`.
+The backend's CORS is automatically opened to both Static Web Apps' URLs, plus any origins listed in `additionalCorsAllowedOrigins`.
 
 ## Deploy
 
@@ -21,18 +21,21 @@ az deployment group create \
 
 Override `environmentName`, `appServicePlanSku`, `staticWebAppSku`, `staticWebAppLocation`, or `additionalCorsAllowedOrigins` by editing `main.bicepparam` or passing `--parameters` on the CLI.
 
-## Deploying the frontend build
+## Deploying the frontend/dashboard builds
 
-The Static Web App is created with no linked source provider, so pushing the built `frontend` app is done out-of-band, e.g. with the [SWA CLI](https://azure.github.io/static-web-apps-cli/):
+The Static Web Apps are created with no linked source provider, so pushing the built `frontend`/`dashboard` apps is done out-of-band, e.g. with the [SWA CLI](https://azure.github.io/static-web-apps-cli/):
 
 ```bash
 swa deploy dist/apps/frontend/browser \
-  --deployment-token <token from `az staticwebapp secrets list`>
+  --deployment-token <token from `az staticwebapp secrets list` for the frontend app>
+
+swa deploy dist/apps/dashboard/browser \
+  --deployment-token <token from `az staticwebapp secrets list` for the dashboard app>
 ```
 
 ## CI/CD
 
-`.github/workflows/ci-cd.yml` builds and tests both apps on every push/PR, and on pushes to `main` also deploys infra + both apps. It authenticates to Azure via OIDC (no stored client secret), so the Azure AD app registration used for login needs a federated credential for this repo's `main` branch.
+`.github/workflows/ci-cd.yml` builds and tests all three apps on every push/PR, and on pushes to `main` also deploys infra + all three apps. It authenticates to Azure via OIDC (no stored client secret), so the Azure AD app registration used for login needs a federated credential for this repo's `main` branch.
 
 Required repository **secrets**:
 
