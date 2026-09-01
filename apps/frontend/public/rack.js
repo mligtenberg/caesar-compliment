@@ -103,6 +103,28 @@ function coordForIndex(ctx, lines, x, y, lineHeight, charIndex) {
 // rolls the whole card 90°, so this draws its layout pre-rotated -90° into that portrait
 // canvas — after the roll it reads upright, as a normal landscape postcard back.
 const TEXT_X = 60, TEXT_Y = 70, TEXT_LINE_H = 54, TEXT_FONT = '400 42px Montserrat, sans-serif';
+const COMPLIMENT_MIN_LEN = 10;
+const COMPLIMENT_MAX_LINES = 16;
+const COMPLIMENT_WRAP_CHARS = 28;
+// Mirrors layoutText's greedy word-wrap but by character count instead of measured
+// pixel width, so the 16-line cap matches the "28 chars per line" rule regardless
+// of the canvas's actual (font-metric-based) wrap points.
+function wrapLinesByChars(text, maxChars) {
+  const lines = [];
+  text.split('\n').forEach((para) => {
+    const words = para.split(' ');
+    let line = '';
+    words.forEach((word) => {
+      const test = line ? line + ' ' + word : word;
+      if (test.length > maxChars && line) {
+        lines.push(line);
+        line = word;
+      } else line = test;
+    });
+    lines.push(line);
+  });
+  return lines;
+}
 let stampProgress = 0;
 let addressProgress = 0;
 function easeOutBack(t) {
@@ -507,6 +529,7 @@ const chooseBtn = document.getElementById('choose-card-btn');
 const complimentPanel = document.getElementById('compliment-panel');
 const complimentText = document.getElementById('compliment-text');
 const complimentSubmit = document.getElementById('compliment-submit');
+const complimentHint = document.getElementById('compliment-hint');
 const privacyCard = document.getElementById('privacy-card');
 const hideFromDashboardCheckbox = document.getElementById('hide-from-dashboard-checkbox');
 let isFlipped = false;
@@ -532,6 +555,7 @@ chooseBtn.addEventListener('click', () => {
   }
   complimentPanel.style.display = 'block';
   complimentText.focus();
+  updateComplimentValidation();
 });
 function refreshCard(withCaretBlink) {
   const el = complimentText;
@@ -539,7 +563,32 @@ function refreshCard(withCaretBlink) {
   const caret = withCaretBlink && !hasSel ? el.selectionEnd : null;
   renderBack(el.value, caret, el.selectionStart, el.selectionEnd);
 }
-complimentText.addEventListener('input', () => refreshCard(true));
+// Rejects a keystroke that would push the compliment past 16 wrapped lines
+// (wrapped per the 28-chars-per-line rule) by reverting to the last value
+// that still fit, restoring the caret as close to where it was as possible.
+let lastValidComplimentValue = '';
+function enforceComplimentLineLimit() {
+  const value = complimentText.value;
+  if (wrapLinesByChars(value, COMPLIMENT_WRAP_CHARS).length > COMPLIMENT_MAX_LINES) {
+    const caret = complimentText.selectionStart;
+    complimentText.value = lastValidComplimentValue;
+    const newCaret = Math.max(0, Math.min(caret - 1, complimentText.value.length));
+    complimentText.setSelectionRange(newCaret, newCaret);
+  } else {
+    lastValidComplimentValue = value;
+  }
+}
+function updateComplimentValidation() {
+  const len = complimentText.value.trim().length;
+  const short = len < COMPLIMENT_MIN_LEN;
+  complimentSubmit.disabled = short;
+  if (complimentHint) {
+    complimentHint.textContent = short
+      ? `Nog minimaal ${COMPLIMENT_MIN_LEN - len} teken${COMPLIMENT_MIN_LEN - len === 1 ? '' : 'en'}`
+      : '';
+  }
+}
+complimentText.addEventListener('input', () => { enforceComplimentLineLimit(); updateComplimentValidation(); refreshCard(true); });
 complimentText.addEventListener('select', () => refreshCard(true));
 complimentText.addEventListener('click', () => refreshCard(true));
 complimentText.addEventListener('keyup', () => refreshCard(true));
@@ -579,7 +628,7 @@ let mailSending = false;
 let hasSent = false;
 let pendingHideFromDashboard = false;
 complimentSubmit.addEventListener('click', () => {
-  if (mailSending || !liftedCard) return;
+  if (mailSending || !liftedCard || complimentText.value.trim().length < COMPLIMENT_MIN_LEN) return;
   mailSending = true;
   pendingHideFromDashboard = hideFromDashboardCheckbox.checked;
   // Stop here, not just in startSend(): the shared animate() loop redraws a
@@ -651,6 +700,8 @@ function finishSend() {
   stampProgress = 0;
   addressProgress = 0;
   complimentText.value = '';
+  lastValidComplimentValue = '';
+  updateComplimentValidation();
   hideFromDashboardCheckbox.checked = false;
   mailSending = false;
   hasSent = true;

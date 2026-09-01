@@ -172,6 +172,19 @@ three-d-stage {
   cursor: pointer;
 }
 #compliment-submit:hover { background: #2E62A0; }
+#compliment-submit:disabled {
+  background: #9fb3c8;
+  cursor: not-allowed;
+}
+#compliment-submit:disabled:hover { background: #9fb3c8; }
+.compliment-hint {
+  color: #a43d41;
+  font-family: Montserrat, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  text-align: right;
+}
+.compliment-hint:empty { display: none; }
 .privacy-card {
   max-width: 280px;
   background: #fff;
