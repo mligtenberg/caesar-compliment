@@ -2,9 +2,11 @@
   display: block;
   /* The physical card frame - always portrait, like the real postcard mesh
      in rack.js. It never resizes; "landscape" is achieved by rolling the
-     whole card around Z, not by morphing the box. */
-  --card-w: min(320px, 38vw);
-  --card-h: calc(var(--card-w) * 138 / 96);
+     whole card around Z, not by morphing the box. Sized off viewport height
+     (not a fixed px cap) so it stays ~60% of screen height on large/4K
+     displays; capped by width too so it can't overflow narrow viewports. */
+  --card-h: min(60vh, 90vw * 138 / 96);
+  --card-w: calc(var(--card-h) * 96 / 138);
 }
 
 .reel-stage {
