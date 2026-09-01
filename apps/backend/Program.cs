@@ -187,7 +187,7 @@ userPages.MapGet("/suggestions/avatar/{id}", async (string id, IRecipientsReposi
 
 userPages.MapPost("/compliments", async (ComplimentRequest compliment, ClaimsPrincipal user, IComplimentsRepository compliments) =>
 {
-    await compliments.UpsertAsync(user.GetObjectId(), compliment);
+    await compliments.UpsertAsync(user.GetObjectId(), user.GetDisplayName(), compliment);
 
     return Results.NoContent();
 })
@@ -277,27 +277,13 @@ adminPages.MapDelete("/{objectId}", async (ClaimsPrincipal user, string objectId
 
 var adminCompliments = userPages.MapGroup("/admin/compliments").AddEndpointFilter(RequireAdmin);
 
-adminCompliments.MapGet("/", async (IComplimentsRepository compliments, IUserLookupService lookup, ILogger<Program> logger) =>
+adminCompliments.MapGet("/", async (IComplimentsRepository compliments) =>
 {
     var all = await compliments.GetAllAsync();
 
-    var senderNames = new Dictionary<string, string>();
-    foreach (var senderId in all.Select(c => c.SenderId).Distinct())
-    {
-        try
-        {
-            var sender = await lookup.GetByIdAsync(senderId);
-            if (sender is not null) senderNames[senderId] = sender.DisplayName;
-        }
-        catch (GraphUnavailableException ex)
-        {
-            logger.LogError(ex, "Failed to resolve sender {SenderId} from Microsoft Graph.", senderId);
-        }
-    }
-
     var result = all.Select(c => new AdminCompliment(
         c.SenderId,
-        senderNames.GetValueOrDefault(c.SenderId, c.SenderId),
+        c.SenderName,
         c.RecipientId,
         c.RecipientName,
         c.Text,

@@ -49,6 +49,9 @@ internal class ComplimentsRepository : IComplimentsRepository
         {
             compliments.Add(new Compliment(
                 entity.RowKey,
+                // Entities written before sender names were denormalized onto the
+                // compliment have no SenderName column - fall back to the sender's id.
+                entity.GetString("SenderName") ?? entity.RowKey,
                 ReadRecipientId(entity),
                 entity.GetString("RecipientName"),
                 entity.GetString("CardName"),
@@ -65,10 +68,11 @@ internal class ComplimentsRepository : IComplimentsRepository
     private static string ReadRecipientId(TableEntity entity) =>
         entity["RecipientId"]?.ToString() ?? "";
 
-    public async Task UpsertAsync(string senderId, ComplimentRequest compliment)
+    public async Task UpsertAsync(string senderId, string senderName, ComplimentRequest compliment)
     {
         var entity = new TableEntity(CurrentPartitionKey(), senderId)
         {
+            { "SenderName", senderName },
             { "RecipientId", compliment.RecipientId },
             { "RecipientName", compliment.RecipientName },
             { "CardName", compliment.CardName },
