@@ -210,15 +210,17 @@ userPages.MapGet("/myrole", async (ClaimsPrincipal user, IRolesRepository roles)
 .WithName("GetMyRole");
 
 // Only admins may manage role assignments - callers must already have an "admin" row
-// in the Roles table themselves, checked on every request in this group.
-var adminPages = userPages.MapGroup("/roles").AddEndpointFilter(async (context, next) =>
+// in the Roles table themselves, checked on every request in these groups.
+async ValueTask<object?> RequireAdmin(Microsoft.AspNetCore.Http.EndpointFilterInvocationContext context, Microsoft.AspNetCore.Http.EndpointFilterDelegate next)
 {
     var user = context.HttpContext.User;
     var roles = context.HttpContext.RequestServices.GetRequiredService<IRolesRepository>();
     var role = await roles.GetRoleAsync(user.GetObjectId());
 
     return role == "admin" ? await next(context) : Results.Forbid();
-});
+}
+
+var adminPages = userPages.MapGroup("/roles").AddEndpointFilter(RequireAdmin);
 
 adminPages.MapGet("/", async (ClaimsPrincipal _, IRolesRepository roles) =>
     Results.Ok(await roles.GetAllAsync()))
@@ -273,6 +275,54 @@ adminPages.MapDelete("/{objectId}", async (ClaimsPrincipal user, string objectId
 })
 .WithName("RemoveRole");
 
+var adminCompliments = userPages.MapGroup("/admin/compliments").AddEndpointFilter(RequireAdmin);
+
+adminCompliments.MapGet("/", async (IComplimentsRepository compliments, IUserLookupService lookup, ILogger<Program> logger) =>
+{
+    var all = await compliments.GetAllAsync();
+
+    var senderNames = new Dictionary<string, string>();
+    foreach (var senderId in all.Select(c => c.SenderId).Distinct())
+    {
+        try
+        {
+            var sender = await lookup.GetByIdAsync(senderId);
+            if (sender is not null) senderNames[senderId] = sender.DisplayName;
+        }
+        catch (GraphUnavailableException ex)
+        {
+            logger.LogError(ex, "Failed to resolve sender {SenderId} from Microsoft Graph.", senderId);
+        }
+    }
+
+    var result = all.Select(c => new AdminCompliment(
+        c.SenderId,
+        senderNames.GetValueOrDefault(c.SenderId, c.SenderId),
+        c.RecipientId,
+        c.RecipientName,
+        c.Text,
+        c.HideFromDashboard));
+
+    return Results.Ok(result);
+})
+.WithName("GetAllCompliments");
+
+adminCompliments.MapPost("/{senderId}/hide", async (string senderId, IComplimentsRepository compliments) =>
+{
+    await compliments.HideAsync(senderId);
+
+    return Results.NoContent();
+})
+.WithName("HideCompliment");
+
+adminCompliments.MapDelete("/{senderId}", async (string senderId, IComplimentsRepository compliments) =>
+{
+    await compliments.DeleteAsync(senderId);
+
+    return Results.NoContent();
+})
+.WithName("DeleteCompliment");
+
 // Area 2: server-to-server access (e.g. the dashboard), secured by a shared API key
 // instead of a user sign-in.
 var external = app.MapGroup("/external").RequireAuthorization(ApiKeyAuthenticationDefaults.AuthenticationScheme);
@@ -291,3 +341,5 @@ public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl);
 
 record ComplimentRequest(string RecipientId, string RecipientName, string CardName, string Text, bool HideFromDashboard = false);
+
+record AdminCompliment(string SenderId, string SenderName, string RecipientId, string RecipientName, string Text, bool HideFromDashboard);

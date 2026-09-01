@@ -50,7 +50,7 @@ export class RoleAssignmentPage implements OnInit {
         this.assignments.set(assignments);
         this.loadAvatars(assignments.map((a) => a.objectId));
       })
-      .catch(() => this.error.set('Could not load role assignments.'))
+      .catch(() => this.error.set('Kon roltoewijzingen niet laden.'))
       .finally(() => this.loading.set(false));
   }
 
@@ -87,7 +87,7 @@ export class RoleAssignmentPage implements OnInit {
       this.selected.set(null);
       this.reload();
     } catch {
-      this.error.set('Could not assign the role.');
+      this.error.set('Kon de rol niet toewijzen.');
     } finally {
       this.saving.set(false);
     }
@@ -99,7 +99,7 @@ export class RoleAssignmentPage implements OnInit {
       await this.apiClient.removeRole(objectId);
       this.reload();
     } catch {
-      this.error.set('Could not remove that role assignment.');
+      this.error.set('Kon deze roltoewijzing niet verwijderen.');
     }
   }
 

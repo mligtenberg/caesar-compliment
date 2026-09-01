@@ -2,3 +2,148 @@
   color: #224f82;
   display: block;
 }
+
+h1 {
+  margin-top: 0;
+}
+
+.error {
+  color: #a43d41;
+  font-weight: 700;
+}
+
+.compliments-table {
+  width: 100%;
+  max-width: 900px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.compliments-table th,
+.compliments-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #dde5ef;
+  vertical-align: middle;
+}
+
+.compliments-table th:first-child,
+.compliments-table td:first-child,
+.compliments-table th:nth-child(2),
+.compliments-table td:nth-child(2) {
+  width: 160px;
+}
+
+.compliments-table th:last-child,
+.compliments-table td:last-child {
+  width: 160px;
+}
+
+.compliment-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compliments-table tbody tr {
+  cursor: pointer;
+}
+
+.compliments-table tbody tr:hover {
+  background: #f4f7fb;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.hide-btn,
+.delete-btn {
+  border: none;
+  border-radius: 6px;
+  background: none;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.hide-btn {
+  color: #224f82;
+  border: 1px solid #dde5ef;
+}
+
+.hide-btn:disabled {
+  color: #5a7391;
+  opacity: 0.6;
+  cursor: default;
+}
+
+.delete-btn {
+  color: #a43d41;
+  border: 1px solid #dde5ef;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 31, 63, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  position: relative;
+  background: #fff;
+  border-radius: 10px;
+  padding: 24px 28px;
+  max-width: 480px;
+  width: calc(100% - 48px);
+  max-height: calc(100% - 48px);
+  overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(13, 31, 63, 0.2);
+}
+
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: none;
+  color: #224f82;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal dl {
+  margin: 0;
+}
+
+.modal dt {
+  font-size: 12px;
+  font-weight: 700;
+  color: #5a7391;
+  margin-top: 16px;
+}
+
+.modal dt:first-child {
+  margin-top: 0;
+}
+
+.modal dd {
+  margin: 4px 0 0;
+}
+
+.compliment-full {
+  white-space: pre-wrap;
+}

@@ -1,3 +1,4 @@
+using Azure;
 using Azure.Data.Tables;
 
 internal class ComplimentsRepository : IComplimentsRepository
@@ -77,6 +78,19 @@ internal class ComplimentsRepository : IComplimentsRepository
 
         await _table.UpsertEntityAsync(entity);
     }
+
+    public async Task HideAsync(string senderId)
+    {
+        var entity = new TableEntity(CurrentPartitionKey(), senderId)
+        {
+            { "HideFromDashboard", true },
+        };
+
+        await _table.UpdateEntityAsync(entity, ETag.All, TableUpdateMode.Merge);
+    }
+
+    public async Task DeleteAsync(string senderId) =>
+        await _table.DeleteEntityAsync(CurrentPartitionKey(), senderId);
 
     // Compliments reset every year, so the year is the partition key across the whole table.
     private static string CurrentPartitionKey() => DateTime.UtcNow.Year.ToString();

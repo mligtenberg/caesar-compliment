@@ -25,6 +25,15 @@ export interface GraphUser {
   userPrincipalName: string | null;
 }
 
+export interface AdminCompliment {
+  senderId: string;
+  senderName: string;
+  recipientId: string;
+  recipientName: string;
+  text: string;
+  hideFromDashboard: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ApiClientService {
   private readonly http = inject(HttpClient);
@@ -76,6 +85,29 @@ export class ApiClientService {
   removeRole(objectId: string): Promise<void> {
     return firstValueFrom(
       this.http.delete<void>(`${environment.api.baseUrl}/roles/${encodeURIComponent(objectId)}`)
+    );
+  }
+
+  getAllCompliments(): Promise<AdminCompliment[]> {
+    return firstValueFrom(
+      this.http.get<AdminCompliment[]>(`${environment.api.baseUrl}/admin/compliments`)
+    );
+  }
+
+  hideCompliment(senderId: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(
+        `${environment.api.baseUrl}/admin/compliments/${encodeURIComponent(senderId)}/hide`,
+        {}
+      )
+    );
+  }
+
+  deleteCompliment(senderId: string): Promise<void> {
+    return firstValueFrom(
+      this.http.delete<void>(
+        `${environment.api.baseUrl}/admin/compliments/${encodeURIComponent(senderId)}`
+      )
     );
   }
 }

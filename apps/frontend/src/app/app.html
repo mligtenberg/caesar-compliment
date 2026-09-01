@@ -6,10 +6,12 @@
       <span class="avatar avatar-initials">{{ initials }}</span>
     }
     <span class="auth-name">{{ displayName }}</span>
-    @if (isAdmin()) {
+    @if (inAdmin()) {
+      <a class="admin-btn" routerLink="/">Terug naar app</a>
+    } @else if (isAdmin()) {
       <a class="admin-btn" routerLink="/admin">Admin</a>
     }
-    <button type="button" class="sign-out-btn" (click)="signOut()">Sign out</button>
+    <button type="button" class="sign-out-btn" (click)="signOut()">Uitloggen</button>
   </div>
 }
 <router-outlet></router-outlet>

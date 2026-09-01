@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
+import { filter } from 'rxjs';
 import { loginRequest } from './auth-config';
 import { ApiClientService } from './api-client.service';
 
@@ -14,10 +15,12 @@ export class App implements OnInit {
   protected title = 'frontend';
   private readonly msalService = inject(MsalService);
   private readonly apiClient = inject(ApiClientService);
+  private readonly router = inject(Router);
 
   protected displayName?: string;
   protected profilePictureUrl?: string;
   protected readonly isAdmin = signal(false);
+  protected readonly inAdmin = signal(false);
 
   ngOnInit(): void {
     if (!this.msalService.instance.getActiveAccount()) {
@@ -32,6 +35,11 @@ export class App implements OnInit {
       this.loadProfile();
       this.loadRole();
     }
+
+    this.inAdmin.set(this.router.url.startsWith('/admin'));
+    this.router.events
+      .pipe(filter((event) => event instanceof NavigationEnd))
+      .subscribe((event) => this.inAdmin.set(event.urlAfterRedirects.startsWith('/admin')));
   }
 
   private loadRole(): void {

@@ -48,6 +48,41 @@ internal class EntraUserLookupService(HttpClient httpClient, TokenCredential cre
         }
     }
 
+    public async Task<GraphUser?> GetByIdAsync(string id)
+    {
+        var url = $"users/{Uri.EscapeDataString(id)}?$select=id,displayName,mail,userPrincipalName";
+
+        HttpResponseMessage response;
+        try
+        {
+            var token = await credential.GetTokenAsync(GraphScope, CancellationToken.None);
+
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            response = await httpClient.SendAsync(request);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            throw new GraphUnavailableException("Could not reach Microsoft Graph to look up a user.", ex);
+        }
+
+        using (response)
+        {
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new GraphUnavailableException(
+                    $"Microsoft Graph returned {(int)response.StatusCode} looking up a user.");
+            }
+
+            var user = await response.Content.ReadFromJsonAsync<GraphUserDto>();
+
+            return user is null ? null : new GraphUser(user.Id, user.DisplayName, user.Mail, user.UserPrincipalName);
+        }
+    }
+
     private sealed record GraphUserSearchResponse(List<GraphUserDto>? Value);
 
     private sealed record GraphUserDto(string Id, string DisplayName, string? Mail, string? UserPrincipalName);

@@ -1,4 +1,4 @@
-<h1>Role assignment</h1>
+<h1>Roltoewijzing</h1>
 
 @if (error()) {
   <p class="error">{{ error() }}</p>
@@ -8,7 +8,7 @@
   <input
     type="text"
     name="query"
-    placeholder="Search by name or email"
+    placeholder="Zoek op naam of e-mailadres"
     autocomplete="off"
     [ngModel]="query()"
     (ngModelChange)="onQueryChange($event)"
@@ -48,21 +48,21 @@
       <option value="admin">admin</option>
       <option value="user">user</option>
     </select>
-    <button type="button" [disabled]="saving()" (click)="assign()">Assign</button>
+    <button type="button" [disabled]="saving()" (click)="assign()">Toewijzen</button>
   </div>
 }
 
 @if (loading()) {
-  <p>Loading…</p>
+  <p>Laden…</p>
 } @else if (assignments().length === 0) {
-  <p>No role assignments yet.</p>
+  <p>Nog geen rollen toegewezen.</p>
 } @else {
   <table class="assignments-table">
     <thead>
       <tr>
         <th></th>
-        <th>Name</th>
-        <th>Role</th>
+        <th>Naam</th>
+        <th>Rol</th>
         <th></th>
       </tr>
     </thead>
@@ -80,7 +80,7 @@
           <td>{{ assignment.role }}</td>
           <td>
             <button type="button" class="remove-btn" (click)="remove(assignment.objectId)">
-              Remove
+              Verwijderen
             </button>
           </td>
         </tr>

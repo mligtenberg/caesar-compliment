@@ -1,2 +1,75 @@
-<h1>Compliments</h1>
-<p>Coming soon.</p>
+<h1>Complimenten</h1>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p>Laden…</p>
+} @else if (compliments().length === 0) {
+  <p>Nog geen complimenten.</p>
+} @else {
+  <table class="compliments-table">
+    <thead>
+      <tr>
+        <th>Ontvanger</th>
+        <th>Afzender</th>
+        <th>Compliment</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (compliment of compliments(); track compliment.senderId) {
+        <tr (click)="select(compliment)">
+          <td>{{ compliment.recipientName }}</td>
+          <td>{{ compliment.senderName }}</td>
+          <td class="compliment-text" [title]="compliment.text">{{ compliment.text }}</td>
+          <td class="actions">
+            <button
+              type="button"
+              class="hide-btn"
+              [disabled]="compliment.hideFromDashboard"
+              (click)="$event.stopPropagation(); hide(compliment)"
+            >
+              {{ compliment.hideFromDashboard ? 'Verborgen' : 'Verbergen' }}
+            </button>
+            <button
+              type="button"
+              class="delete-btn"
+              (click)="$event.stopPropagation(); delete(compliment)"
+            >
+              Verwijderen
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
+
+@if (selected(); as compliment) {
+  <div class="modal-backdrop" (click)="close()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <button type="button" class="modal-close" (click)="close()" aria-label="Sluiten">&times;</button>
+      <dl>
+        <dt>Ontvanger</dt>
+        <dd>{{ compliment.recipientName }}</dd>
+        <dt>Afzender</dt>
+        <dd>{{ compliment.senderName }}</dd>
+        <dt>Compliment</dt>
+        <dd class="compliment-full">{{ compliment.text }}</dd>
+      </dl>
+      <div class="modal-actions">
+        <button
+          type="button"
+          class="hide-btn"
+          [disabled]="compliment.hideFromDashboard"
+          (click)="hide(compliment)"
+        >
+          {{ compliment.hideFromDashboard ? 'Verborgen' : 'Verbergen' }}
+        </button>
+        <button type="button" class="delete-btn" (click)="delete(compliment)">Verwijderen</button>
+      </div>
+    </div>
+  </div>
+}
