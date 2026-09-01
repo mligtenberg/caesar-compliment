@@ -4,15 +4,20 @@
   <p class="error">{{ error() }}</p>
 }
 
-@if (!loading() && compliments().length > 0) {
+@if (!loading()) {
   <div class="search-bar">
-    <input
-      type="search"
-      class="search-input"
-      placeholder="Zoek op ontvanger, afzender of compliment…"
-      [value]="search()"
-      (input)="search.set($any($event.target).value)"
-    />
+    @if (compliments().length > 0) {
+      <input
+        type="search"
+        class="search-input"
+        placeholder="Zoek op ontvanger, afzender of compliment…"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+      />
+    } @else {
+      <span></span>
+    }
+    <button type="button" class="add-btn" (click)="openAdd()">Compliment toevoegen</button>
   </div>
 }
 
@@ -77,7 +82,7 @@
     (keydown.space)="close()"
   >
     <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
-    <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
       <button type="button" class="modal-close" (click)="close()" aria-label="Sluiten">&times;</button>
       <dl>
         <dt>Ontvanger</dt>
@@ -98,6 +103,24 @@
         </button>
         <button type="button" class="delete-btn" (click)="delete(compliment)">Verwijderen</button>
       </div>
+    </div>
+  </div>
+}
+
+@if (adding()) {
+  <div
+    class="modal-backdrop"
+    tabindex="0"
+    role="button"
+    (click)="closeAdd()"
+    (keydown.enter)="closeAdd()"
+    (keydown.space)="closeAdd()"
+  >
+    <!-- eslint-disable-next-line @angular-eslint/template/click-events-have-key-events, @angular-eslint/template/interactive-supports-focus -->
+    <div class="modal" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+      <button type="button" class="modal-close" (click)="closeAdd()" aria-label="Sluiten">&times;</button>
+      <h2>Compliment toevoegen</h2>
+      <app-admin-send-form (sent)="onAdded()"></app-admin-send-form>
     </div>
   </div>
 }

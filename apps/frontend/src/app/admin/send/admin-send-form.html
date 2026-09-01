@@ -1,0 +1,65 @@
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+@if (success()) {
+  <p class="success">{{ success() }}</p>
+}
+
+<div class="search-box">
+  <input
+    type="text"
+    name="query"
+    class="recipient-anchor"
+    placeholder="Zoek een ontvanger op naam"
+    autocomplete="off"
+    [ngModel]="query()"
+    (ngModelChange)="onQueryChange($event)"
+  />
+
+  <ul #suggestionsList class="suggestions" popover="manual">
+    @for (recipient of suggestions(); track recipient.id) {
+      <li
+        tabindex="0"
+        role="button"
+        (click)="selectRecipient(recipient)"
+        (keydown.enter)="selectRecipient(recipient)"
+        (keydown.space)="selectRecipient(recipient)"
+      >
+        <span class="suggestion-name">{{ recipient.name }}</span>
+        <span class="suggestion-title">{{ recipient.jobTitle }}</span>
+      </li>
+    }
+  </ul>
+</div>
+
+@if (selected(); as recipient) {
+  <div class="form">
+    <p class="recipient">Ontvanger: <strong>{{ recipient.name }}</strong></p>
+
+    <div class="carousel">
+      <button type="button" class="carousel-nav" (click)="previousCard()" aria-label="Vorige kaart">
+        &lsaquo;
+      </button>
+      <img class="carousel-card" [src]="selectedCard.imageUrl" alt="" />
+      <button type="button" class="carousel-nav" (click)="nextCard()" aria-label="Volgende kaart">
+        &rsaquo;
+      </button>
+    </div>
+
+    <textarea
+      name="text"
+      rows="4"
+      placeholder="Schrijf het compliment…"
+      [(ngModel)]="text"
+    ></textarea>
+
+    <label class="hide-option">
+      <input type="checkbox" [(ngModel)]="hideFromDashboard" name="hideFromDashboard" />
+      Verbergen van dashboard
+    </label>
+
+    <button type="button" class="send-btn" [disabled]="saving() || !text.trim()" (click)="send()">
+      Versturen
+    </button>
+  </div>
+}

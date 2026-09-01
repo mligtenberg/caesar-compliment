@@ -110,4 +110,14 @@ export class ApiClientService {
       )
     );
   }
+
+  searchAdminSendRecipients(term: string): Promise<Recipient[]> {
+    const trimmed = term.trim();
+    const url = `${environment.api.baseUrl}/admin/send/recipients?term=${encodeURIComponent(trimmed)}`;
+    return firstValueFrom(this.http.get<Recipient[]>(url), { defaultValue: [] });
+  }
+
+  async sendAdminCompliment(compliment: ComplimentRequest): Promise<void> {
+    await firstValueFrom(this.http.post(`${environment.api.baseUrl}/admin/send`, compliment));
+  }
 }

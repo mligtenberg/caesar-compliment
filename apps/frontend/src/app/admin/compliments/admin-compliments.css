@@ -13,6 +13,10 @@ h1 {
 }
 
 .search-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 16px;
 }
 
@@ -29,6 +33,19 @@ h1 {
 .search-input:focus {
   outline: 2px solid #224f82;
   outline-offset: 1px;
+}
+
+.add-btn {
+  flex-shrink: 0;
+  margin-left: auto;
+  border: none;
+  border-radius: 999px;
+  background: #224f82;
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 20px;
+  cursor: pointer;
 }
 
 .compliments-table {

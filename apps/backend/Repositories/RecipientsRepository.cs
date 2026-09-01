@@ -82,6 +82,23 @@ internal class RecipientsRepository : IRecipientsRepository
             .ToArray();
     }
 
+    // Admin picking a recipient on someone else's behalf isn't ranked against a
+    // viewer's own team/company, so this just filters and sorts alphabetically,
+    // and returns more matches than the self-service suggestions list.
+    public IReadOnlyList<Recipient> SearchForAdmin(string? term, IReadOnlySet<string> excludedRecipientIds)
+    {
+        var trimmed = term?.Trim() ?? "";
+
+        return _recipients
+            .Where(r =>
+                !excludedRecipientIds.Contains(r.Id) &&
+                (trimmed.Length == 0 || r.Name.Contains(trimmed, StringComparison.OrdinalIgnoreCase)))
+            .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+            .Take(20)
+            .Select(r => new Recipient(r.Id, r.Name, r.JobTitle, $"/suggestions/avatar/{r.Id}"))
+            .ToArray();
+    }
+
     private static string? LocalPart(string? email)
     {
         if (string.IsNullOrEmpty(email)) return null;

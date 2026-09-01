@@ -4,7 +4,7 @@ import { postcardFrontIsLandscape } from './postcard-images';
 import { renderFinishedPostcardBack } from './postcard-back-renderer';
 import { FallingCards } from './falling-cards';
 
-const CARD_DURATION_MS = 5000;
+const CARD_DURATION_MS = 7100;
 const CYCLE_DURATION_MS = 60000;
 const CARDS_PER_CYCLE = Math.ceil(CYCLE_DURATION_MS / CARD_DURATION_MS);
 

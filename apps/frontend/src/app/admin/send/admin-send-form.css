@@ -1,0 +1,146 @@
+:host {
+  color: #224f82;
+  display: block;
+}
+
+.error {
+  color: #a43d41;
+  font-weight: 700;
+}
+
+.success {
+  color: #2f7a4f;
+  font-weight: 700;
+}
+
+.search-box {
+  max-width: 400px;
+  margin-bottom: 24px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dde5ef;
+  border-radius: 8px;
+  font-family: inherit;
+  box-sizing: border-box;
+  anchor-name: --recipient-search;
+}
+
+/* A manual popover renders in the top layer, anchored to the input via CSS anchor
+   positioning - it escapes the modal's DOM subtree entirely, so the modal's own
+   overflow/scroll clipping can never cut it off. */
+.suggestions {
+  position: fixed;
+  position-anchor: --recipient-search;
+  top: calc(anchor(--recipient-search bottom) + 4px);
+  left: anchor(--recipient-search left);
+  width: anchor-size(--recipient-search width);
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #dde5ef;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(13, 31, 63, 0.12);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.suggestions li {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background: #f4f7fb;
+}
+
+.suggestion-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.suggestion-title {
+  font-size: 12px;
+  color: #5a7391;
+}
+
+.form {
+  max-width: 400px;
+}
+
+.recipient {
+  margin: 0 0 16px;
+}
+
+.carousel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.carousel-card {
+  width: 200px;
+  height: 260px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 8px 20px rgba(13, 31, 63, 0.15);
+}
+
+.carousel-nav {
+  border: 1px solid #dde5ef;
+  border-radius: 50%;
+  background: #fff;
+  color: #224f82;
+  width: 36px;
+  height: 36px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.carousel-nav:hover {
+  background: #f4f7fb;
+}
+
+textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dde5ef;
+  border-radius: 8px;
+  font-family: inherit;
+  box-sizing: border-box;
+  resize: vertical;
+  margin-bottom: 12px;
+}
+
+.hide-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.send-btn {
+  border: none;
+  border-radius: 999px;
+  background: #224f82;
+  color: #fff;
+  font-weight: 700;
+  padding: 8px 20px;
+  cursor: pointer;
+}
+
+.send-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

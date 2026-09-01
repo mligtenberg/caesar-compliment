@@ -318,6 +318,27 @@ adminCompliments.MapDelete("/{senderId}", async (string senderId, IComplimentsRe
 })
 .WithName("DeleteCompliment");
 
+var adminSend = userPages.MapGroup("/admin/send").AddEndpointFilter(RequireAdmin);
+
+adminSend.MapGet("/recipients", async (string? term, IRecipientsRepository recipients, IComplimentsRepository compliments) =>
+{
+    var complimented = await compliments.GetComplimentedRecipientIdsAsync();
+    return Results.Ok(recipients.SearchForAdmin(term, complimented));
+})
+.WithName("SearchRecipientsForAdminSend");
+
+adminSend.MapPost("/", async (ComplimentRequest compliment, IComplimentsRepository compliments) =>
+{
+    // Admin-sent compliments aren't tied to a real Entra user, so RowKey (which is
+    // normally the sender's own object id and enforces "one compliment per sender")
+    // is instead a synthetic, always-unique id per send.
+    var senderId = $"adminsend-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
+    await compliments.UpsertAsync(senderId, "Admin Send", compliment);
+
+    return Results.NoContent();
+})
+.WithName("SendAdminCompliment");
+
 // Area 2: server-to-server access (e.g. the dashboard), secured by a shared API key
 // instead of a user sign-in.
 var external = app.MapGroup("/external").RequireAuthorization(ApiKeyAuthenticationDefaults.AuthenticationScheme);

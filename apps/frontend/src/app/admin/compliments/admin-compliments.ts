@@ -1,7 +1,9 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { AdminCompliment, ApiClientService } from '../../api-client.service';
+import { AdminSendForm } from '../send/admin-send-form';
 
 @Component({
+  imports: [AdminSendForm],
   selector: 'app-admin-compliments',
   templateUrl: './admin-compliments.html',
   styleUrl: './admin-compliments.css',
@@ -14,6 +16,7 @@ export class AdminCompliments implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly selected = signal<AdminCompliment | null>(null);
   protected readonly search = signal('');
+  protected readonly adding = signal(false);
 
   protected readonly filteredCompliments = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -45,6 +48,19 @@ export class AdminCompliments implements OnInit {
 
   protected close(): void {
     this.selected.set(null);
+  }
+
+  protected openAdd(): void {
+    this.adding.set(true);
+  }
+
+  protected closeAdd(): void {
+    this.adding.set(false);
+  }
+
+  protected onAdded(): void {
+    this.adding.set(false);
+    this.reload();
   }
 
   protected async hide(compliment: AdminCompliment): Promise<void> {
