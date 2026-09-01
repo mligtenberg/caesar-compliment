@@ -1,0 +1,90 @@
+<h1>Role assignment</h1>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+<div class="search-box">
+  <input
+    type="text"
+    name="query"
+    placeholder="Search by name or email"
+    autocomplete="off"
+    [ngModel]="query()"
+    (ngModelChange)="onQueryChange($event)"
+  />
+
+  @if (suggestions().length > 0) {
+    <ul class="suggestions">
+      @for (user of suggestions(); track user.id) {
+        <li (click)="selectUser(user)">
+          @if (avatarUrls()[user.id]) {
+            <img class="avatar" [src]="avatarUrls()[user.id]" alt="" />
+          } @else {
+            <span class="avatar avatar-fallback">{{ initials(user.displayName) }}</span>
+          }
+          <div class="suggestion-info">
+            <span class="suggestion-name">{{ user.displayName }}</span>
+            <span class="suggestion-mail">{{ user.mail ?? user.userPrincipalName }}</span>
+          </div>
+        </li>
+      }
+    </ul>
+  }
+</div>
+
+@if (selected(); as user) {
+  <div class="found-user">
+    @if (avatarUrls()[user.id]) {
+      <img class="avatar" [src]="avatarUrls()[user.id]" alt="" />
+    } @else {
+      <span class="avatar avatar-fallback">{{ initials(user.displayName) }}</span>
+    }
+    <div class="found-user-info">
+      <span class="found-name">{{ user.displayName }}</span>
+      <span class="found-mail">{{ user.mail ?? user.userPrincipalName }}</span>
+    </div>
+    <select name="role" [(ngModel)]="newRole">
+      <option value="admin">admin</option>
+      <option value="user">user</option>
+    </select>
+    <button type="button" [disabled]="saving()" (click)="assign()">Assign</button>
+  </div>
+}
+
+@if (loading()) {
+  <p>Loading…</p>
+} @else if (assignments().length === 0) {
+  <p>No role assignments yet.</p>
+} @else {
+  <table class="assignments-table">
+    <thead>
+      <tr>
+        <th></th>
+        <th>Name</th>
+        <th>Role</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (assignment of assignments(); track assignment.objectId) {
+        <tr>
+          <td>
+            @if (avatarUrls()[assignment.objectId]) {
+              <img class="avatar" [src]="avatarUrls()[assignment.objectId]" alt="" />
+            } @else {
+              <span class="avatar avatar-fallback">{{ initials(assignment.displayName) }}</span>
+            }
+          </td>
+          <td>{{ assignment.displayName || assignment.objectId }}</td>
+          <td>{{ assignment.role }}</td>
+          <td>
+            <button type="button" class="remove-btn" (click)="remove(assignment.objectId)">
+              Remove
+            </button>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

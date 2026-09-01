@@ -21,7 +21,8 @@ internal class ComplimentsRepository : IComplimentsRepository
             ReadRecipientId(entity),
             entity.GetString("RecipientName"),
             entity.GetString("CardName"),
-            entity.GetString("Text"));
+            entity.GetString("Text"),
+            entity.GetBoolean("HideFromDashboard") ?? false);
     }
 
     public async Task<IReadOnlySet<string>> GetComplimentedRecipientIdsAsync()
@@ -50,7 +51,8 @@ internal class ComplimentsRepository : IComplimentsRepository
                 ReadRecipientId(entity),
                 entity.GetString("RecipientName"),
                 entity.GetString("CardName"),
-                entity.GetString("Text")));
+                entity.GetString("Text"),
+                entity.GetBoolean("HideFromDashboard") ?? false));
         }
 
         return compliments;
@@ -70,6 +72,7 @@ internal class ComplimentsRepository : IComplimentsRepository
             { "RecipientName", compliment.RecipientName },
             { "CardName", compliment.CardName },
             { "Text", compliment.Text },
+            { "HideFromDashboard", compliment.HideFromDashboard },
         };
 
         await _table.UpsertEntityAsync(entity);

@@ -54,6 +54,7 @@ export class PostcardRack implements AfterViewInit, OnDestroy {
           recipientName: data.recipientName,
           cardName: data.cardName,
           text: data.text,
+          hideFromDashboard: data.hideFromDashboard,
         });
       }
       this.router.navigateByUrl('/thanks');

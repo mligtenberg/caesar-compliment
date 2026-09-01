@@ -101,7 +101,7 @@ three-d-stage {
     text-align: center;
   }
   .choose-btn:active { transform: scale(0.97); }
-  #compliment-submit { right: 5%; left: 5%; width: auto; bottom: 6%; }
+  .compliment-actions { right: 5%; left: 5%; bottom: 6%; align-items: stretch; }
 }
 .compliment-panel {
   display: none;
@@ -148,11 +148,19 @@ three-d-stage {
 }
 :host-context(.is-touch) .compliment-panel textarea::selection { background: #dbe6f7; color: #224F82; }
 :host-context(.is-touch) .compliment-panel textarea::-moz-selection { background: #dbe6f7; color: #224F82; }
-#compliment-submit {
+.compliment-actions {
   position: fixed;
   right: 8%;
   bottom: 10%;
-  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: none;
+  z-index: 2;
+}
+.compliment-actions > * { pointer-events: auto; }
+#compliment-submit {
   border: none;
   border-radius: 8px;
   background: #224F82;
@@ -162,6 +170,35 @@ three-d-stage {
   font-size: 15px;
   padding: 12px 24px;
   cursor: pointer;
-  z-index: 2;
 }
 #compliment-submit:hover { background: #2E62A0; }
+.privacy-card {
+  max-width: 280px;
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 14px rgba(13, 31, 63, 0.15);
+  font-family: Montserrat, -apple-system, sans-serif;
+}
+.privacy-card label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+.privacy-card input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: #224F82;
+  cursor: pointer;
+}
+.privacy-card span {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #224F82;
+}
+@media (max-width: 640px) {
+  .privacy-card { max-width: none; }
+}

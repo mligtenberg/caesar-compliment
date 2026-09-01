@@ -32,7 +32,7 @@ export class App {
     this.error.set(null);
 
     try {
-      this.compliments.set(await this.apiClient.getAll());
+      this.compliments.set((await this.apiClient.getAll()).filter((c) => !c.hideFromDashboard));
     } catch {
       this.error.set('Failed to load compliments. Check that the API key is valid.');
     } finally {

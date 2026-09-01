@@ -500,6 +500,7 @@ function returnCard() {
   chooseBtn.style.display = 'none';
   complimentPanel.style.display = 'none';
   complimentSubmit.style.display = 'none';
+  privacyCard.style.display = 'none';
   isFlipped = false;
   cardShowsBack = false;
 }
@@ -508,6 +509,8 @@ const chooseBtn = document.getElementById('choose-card-btn');
 const complimentPanel = document.getElementById('compliment-panel');
 const complimentText = document.getElementById('compliment-text');
 const complimentSubmit = document.getElementById('compliment-submit');
+const privacyCard = document.getElementById('privacy-card');
+const hideFromDashboardCheckbox = document.getElementById('hide-from-dashboard-checkbox');
 let isFlipped = false;
 // Whether the lifted card should render back-side-up. Distinct from isFlipped:
 // isFlipped also gates the live text-editing overlay (caret blink, panel
@@ -523,6 +526,7 @@ chooseBtn.addEventListener('click', () => {
   cardShowsBack = true;
   chooseBtn.style.display = 'none';
   complimentSubmit.style.display = 'block';
+  privacyCard.style.display = 'block';
   if (document.documentElement.classList.contains('is-touch')) {
     // Mobile: a plain form below the card, not an invisible textarea tracking
     // the card's screen position (fiddly to align once the keyboard opens).
@@ -575,15 +579,18 @@ function landscapeBackDataUrl() {
 }
 let mailSending = false;
 let hasSent = false;
+let pendingHideFromDashboard = false;
 complimentSubmit.addEventListener('click', () => {
   if (mailSending || !liftedCard) return;
   mailSending = true;
+  pendingHideFromDashboard = hideFromDashboardCheckbox.checked;
   // Stop here, not just in startSend(): the shared animate() loop redraws a
   // blinking caret every frame while isFlipped is true, which would otherwise
   // keep racing with (and winning over) stampTick/addrTick's caret-free draws.
   isFlipped = false;
   complimentPanel.style.display = 'none';
   complimentSubmit.style.display = 'none';
+  privacyCard.style.display = 'none';
   // From here on the card is just being watched, not edited — render straight
   // from the text, with no caret and no selection highlight. Going through
   // refreshCard() would still forward the textarea's live selectionStart/End
@@ -646,6 +653,7 @@ function finishSend() {
   stampProgress = 0;
   addressProgress = 0;
   complimentText.value = '';
+  hideFromDashboardCheckbox.checked = false;
   mailSending = false;
   hasSent = true;
   setButtonsForTier(null);
@@ -656,6 +664,7 @@ function finishSend() {
     text,
     recipientName: RECIPIENT_NAME,
     cardName,
+    hideFromDashboard: pendingHideFromDashboard,
   });
 }
 

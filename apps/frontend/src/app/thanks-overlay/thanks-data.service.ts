@@ -7,6 +7,7 @@ export interface ThanksData {
   text: string;
   recipientName: string;
   cardName: string;
+  hideFromDashboard: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

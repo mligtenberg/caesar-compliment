@@ -1,0 +1,164 @@
+:host {
+  color: #224f82;
+  display: block;
+}
+
+h1 {
+  margin-top: 0;
+}
+
+.error {
+  color: #a43d41;
+  font-weight: 700;
+}
+
+.search-box {
+  position: relative;
+  max-width: 400px;
+  margin-bottom: 24px;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #dde5ef;
+  border-radius: 8px;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  background: #fff;
+  border: 1px solid #dde5ef;
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(13, 31, 63, 0.12);
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.suggestions li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background: #f4f7fb;
+}
+
+.suggestion-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.suggestion-name {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.suggestion-mail {
+  font-size: 12px;
+  color: #5a7391;
+}
+
+.found-user button {
+  border: none;
+  border-radius: 999px;
+  background: #224f82;
+  color: #fff;
+  font-weight: 700;
+  padding: 8px 20px;
+  cursor: pointer;
+}
+
+.found-user button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.found-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f4f7fb;
+  border: 1px solid #dde5ef;
+  border-radius: 10px;
+  padding: 10px 16px;
+  margin-bottom: 24px;
+  max-width: 560px;
+}
+
+.found-user-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.found-name {
+  font-weight: 700;
+}
+
+.found-mail {
+  font-size: 12px;
+  color: #5a7391;
+}
+
+.found-user select {
+  padding: 8px 12px;
+  border: 1px solid #dde5ef;
+  border-radius: 8px;
+  font-family: inherit;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #224f82;
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.assignments-table {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+}
+
+.assignments-table th,
+.assignments-table td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #dde5ef;
+  vertical-align: middle;
+}
+
+.remove-btn {
+  border: none;
+  background: none;
+  color: #a43d41;
+  font-weight: 700;
+  cursor: pointer;
+}

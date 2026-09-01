@@ -11,4 +11,4 @@ internal interface IComplimentsRepository
     Task UpsertAsync(string senderId, ComplimentRequest compliment);
 }
 
-record Compliment(string SenderId, string RecipientId, string RecipientName, string CardName, string Text);
+record Compliment(string SenderId, string RecipientId, string RecipientName, string CardName, string Text, bool HideFromDashboard);

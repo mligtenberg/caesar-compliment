@@ -50,6 +50,22 @@
 }
 .sign-out-btn:hover { background: #a43d41; }
 .sign-out-btn:active { transform: scale(0.97); }
+.admin-btn {
+  border: none;
+  border-radius: 999px;
+  background: #fff;
+  color: #224f82;
+  border: 1px solid #224f82;
+  font-family: Montserrat, -apple-system, sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 6px 14px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 120ms ease;
+}
+.admin-btn:hover { background: #eef3f9; }
+.admin-btn:active { transform: scale(0.97); }
 
 @media (max-width: 640px) {
   .auth-name { display: none; }

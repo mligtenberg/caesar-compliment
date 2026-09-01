@@ -1,7 +1,8 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { RouterModule } from '@angular/router';
 import { MsalService } from '@azure/msal-angular';
 import { loginRequest } from './auth-config';
+import { ApiClientService } from './api-client.service';
 
 @Component({
   imports: [RouterModule],
@@ -12,9 +13,11 @@ import { loginRequest } from './auth-config';
 export class App implements OnInit {
   protected title = 'frontend';
   private readonly msalService = inject(MsalService);
+  private readonly apiClient = inject(ApiClientService);
 
   protected displayName?: string;
   protected profilePictureUrl?: string;
+  protected readonly isAdmin = signal(false);
 
   ngOnInit(): void {
     if (!this.msalService.instance.getActiveAccount()) {
@@ -27,7 +30,14 @@ export class App implements OnInit {
     if (account) {
       this.displayName = account.name;
       this.loadProfile();
+      this.loadRole();
     }
+  }
+
+  private loadRole(): void {
+    this.apiClient.getMyRole().then((role) => {
+      this.isAdmin.set(role === 'admin');
+    });
   }
 
   protected get initials(): string {

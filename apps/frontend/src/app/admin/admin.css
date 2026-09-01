@@ -1,0 +1,39 @@
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  font-family: Montserrat, -apple-system, sans-serif;
+}
+
+.admin-nav {
+  width: 200px;
+  flex-shrink: 0;
+  padding: 96px 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #f4f7fb;
+  border-right: 1px solid #dde5ef;
+}
+
+.admin-nav a {
+  color: #224f82;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+.admin-nav a:hover {
+  background: #e4ecf7;
+}
+
+.admin-nav a.active {
+  background: #224f82;
+  color: #fff;
+}
+
+.admin-content {
+  flex: 1;
+  padding: 96px 32px 32px;
+}

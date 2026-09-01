@@ -4,4 +4,5 @@ export interface Compliment {
   recipientName: string;
   cardName: string;
   text: string;
+  hideFromDashboard: boolean;
 }

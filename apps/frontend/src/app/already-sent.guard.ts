@@ -23,6 +23,7 @@ export const alreadySentGuard: CanActivateFn = async () => {
     text: compliment.text,
     recipientName: compliment.recipientName,
     cardName: compliment.cardName,
+    hideFromDashboard: compliment.hideFromDashboard,
   });
 
   return router.createUrlTree(['/thanks']);

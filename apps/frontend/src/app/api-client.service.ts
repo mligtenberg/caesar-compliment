@@ -9,6 +9,20 @@ export interface ComplimentRequest {
   recipientName: string;
   cardName: string;
   text: string;
+  hideFromDashboard: boolean;
+}
+
+export interface RoleAssignment {
+  objectId: string;
+  role: string;
+  displayName: string;
+}
+
+export interface GraphUser {
+  id: string;
+  displayName: string;
+  mail: string | null;
+  userPrincipalName: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -30,6 +44,38 @@ export class ApiClientService {
       this.http.get<ComplimentRequest>(`${environment.api.baseUrl}/compliments/mine`).pipe(
         catchError(() => of(null))
       )
+    );
+  }
+
+  getMyRole(): Promise<string> {
+    return firstValueFrom(
+      this.http.get<string>(`${environment.api.baseUrl}/myrole`).pipe(
+        catchError(() => of('user'))
+      )
+    );
+  }
+
+  getRoleAssignments(): Promise<RoleAssignment[]> {
+    return firstValueFrom(this.http.get<RoleAssignment[]>(`${environment.api.baseUrl}/roles`));
+  }
+
+  searchUsers(query: string): Promise<GraphUser[]> {
+    const trimmed = query.trim();
+    if (!trimmed) return Promise.resolve([]);
+
+    const url = `${environment.api.baseUrl}/roles/search?query=${encodeURIComponent(trimmed)}`;
+    return firstValueFrom(this.http.get<GraphUser[]>(url), { defaultValue: [] });
+  }
+
+  assignRole(objectId: string, role: string, displayName: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${environment.api.baseUrl}/roles`, { objectId, role, displayName })
+    );
+  }
+
+  removeRole(objectId: string): Promise<void> {
+    return firstValueFrom(
+      this.http.delete<void>(`${environment.api.baseUrl}/roles/${encodeURIComponent(objectId)}`)
     );
   }
 }

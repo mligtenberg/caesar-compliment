@@ -108,14 +108,20 @@ builder.Services.AddHttpClient<IAvatarService, EntraAvatarService>(client =>
 {
     client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");
 });
+builder.Services.AddHttpClient<IUserLookupService, EntraUserLookupService>(client =>
+{
+    client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");
+});
 
 builder.Services.AddSingleton<IComplimentsRepository, ComplimentsRepository>();
 builder.Services.AddSingleton<IRecipientsRepository, RecipientsRepository>();
+builder.Services.AddSingleton<IRolesRepository, RolesRepository>();
 
 var app = builder.Build();
 
 await app.Services.GetRequiredService<IComplimentsRepository>().InitializeAsync();
 await app.Services.GetRequiredService<IRecipientsRepository>().InitializeAsync();
+await app.Services.GetRequiredService<IRolesRepository>().InitializeAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -195,6 +201,78 @@ userPages.MapGet("/compliments/mine", async (ClaimsPrincipal user, IComplimentsR
 })
 .WithName("GetMyCompliment");
 
+userPages.MapGet("/myrole", async (ClaimsPrincipal user, IRolesRepository roles) =>
+{
+    var role = await roles.GetRoleAsync(user.GetObjectId());
+
+    return Results.Ok(role ?? "user");
+})
+.WithName("GetMyRole");
+
+// Only admins may manage role assignments - callers must already have an "admin" row
+// in the Roles table themselves, checked on every request in this group.
+var adminPages = userPages.MapGroup("/roles").AddEndpointFilter(async (context, next) =>
+{
+    var user = context.HttpContext.User;
+    var roles = context.HttpContext.RequestServices.GetRequiredService<IRolesRepository>();
+    var role = await roles.GetRoleAsync(user.GetObjectId());
+
+    return role == "admin" ? await next(context) : Results.Forbid();
+});
+
+adminPages.MapGet("/", async (ClaimsPrincipal _, IRolesRepository roles) =>
+    Results.Ok(await roles.GetAllAsync()))
+.WithName("GetAllRoles");
+
+adminPages.MapGet("/search", async (string query, IUserLookupService lookup, ILogger<Program> logger) =>
+{
+    if (string.IsNullOrWhiteSpace(query)) return Results.Ok(Array.Empty<GraphUser>());
+
+    try
+    {
+        return Results.Ok(await lookup.SearchAsync(query));
+    }
+    catch (GraphUnavailableException ex)
+    {
+        logger.LogError(ex, "Failed to search for user {Query} in Microsoft Graph.", query);
+        return Results.StatusCode(StatusCodes.Status502BadGateway);
+    }
+})
+.WithName("SearchUsers");
+
+adminPages.MapGet("/avatar/{objectId}", async (string objectId, IAvatarService avatars, ILogger<Program> logger) =>
+{
+    try
+    {
+        var photo = await avatars.GetAvatarAsync(objectId);
+        return photo is null ? Results.NotFound() : Results.Bytes(photo.Value.Bytes, photo.Value.ContentType);
+    }
+    catch (GraphUnavailableException ex)
+    {
+        logger.LogError(ex, "Failed to fetch avatar for {ObjectId} from Microsoft Graph.", objectId);
+        return Results.StatusCode(StatusCodes.Status502BadGateway);
+    }
+})
+.WithName("GetUserAvatar");
+
+adminPages.MapPost("/", async (ClaimsPrincipal _, RoleAssignment assignment, IRolesRepository roles) =>
+{
+    await roles.AssignRoleAsync(assignment.ObjectId, assignment.Role, assignment.DisplayName);
+
+    return Results.NoContent();
+})
+.WithName("AssignRole");
+
+adminPages.MapDelete("/{objectId}", async (ClaimsPrincipal user, string objectId, IRolesRepository roles) =>
+{
+    if (objectId == user.GetObjectId()) return Results.BadRequest("Admins cannot remove their own role assignment.");
+
+    await roles.RemoveRoleAsync(objectId);
+
+    return Results.NoContent();
+})
+.WithName("RemoveRole");
+
 // Area 2: server-to-server access (e.g. the dashboard), secured by a shared API key
 // instead of a user sign-in.
 var external = app.MapGroup("/external").RequireAuthorization(ApiKeyAuthenticationDefaults.AuthenticationScheme);
@@ -212,4 +290,4 @@ public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 
 record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl);
 
-record ComplimentRequest(string RecipientId, string RecipientName, string CardName, string Text);
+record ComplimentRequest(string RecipientId, string RecipientName, string CardName, string Text, bool HideFromDashboard = false);
