@@ -115,6 +115,8 @@ jobs:
       backendName: ${{ steps.deploy.outputs.backendName }}
       frontendName: ${{ steps.deploy.outputs.frontendName }}
       dashboardName: ${{ steps.deploy.outputs.dashboardName }}
+      backendUrl: ${{ steps.deploy.outputs.backendUrl }}
+      frontendUrl: ${{ steps.deploy.outputs.frontendUrl }}
     steps:
       - uses: actions/checkout@v4
 
@@ -130,7 +132,9 @@ jobs:
           scope: resourcegroup
           resourceGroupName: ${{ env.AZURE_RESOURCE_GROUP }}
           template: infra/main.bicep
-          parameters: environmentName=${{ env.AZURE_ENVIRONMENT_NAME }}
+          parameters: >-
+            environmentName=${{ env.AZURE_ENVIRONMENT_NAME }}
+            backendApiKey=${{ secrets.BACKEND_API_KEY }}
 
   deploy-backend:
     name: Deploy backend
@@ -161,10 +165,17 @@ jobs:
     needs: deploy-infra
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: frontend-dist
+
+      - run: |
+          node tools/replace-tokens.mjs frontend-dist \
+            ENTRA_REDIRECT_URI="${{ needs.deploy-infra.outputs.frontendUrl }}" \
+            API_BASE_URL="${{ needs.deploy-infra.outputs.backendUrl }}"
 
       - uses: azure/login@v2
         with:
@@ -197,10 +208,16 @@ jobs:
     needs: deploy-infra
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
       - uses: actions/download-artifact@v4
         with:
           name: dashboard-dist
           path: dashboard-dist
+
+      - run: |
+          node tools/replace-tokens.mjs dashboard-dist \
+            API_BASE_URL="${{ needs.deploy-infra.outputs.backendUrl }}"
 
       - uses: azure/login@v2
         with:

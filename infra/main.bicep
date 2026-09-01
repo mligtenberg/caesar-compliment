@@ -22,6 +22,16 @@ param staticWebAppLocation string = 'westeurope'
 @description('Additional CORS origins to allow on the backend API, beyond the deployed frontend URL')
 param additionalCorsAllowedOrigins array = []
 
+@description('Entra ID tenant ID shared by all app registrations - same tenant used for local development, see config/local.json')
+param entraTenantId string = 'c53567a1-4f5a-4d88-a3a4-c20d15cca883'
+
+@description('Client ID of the backend app registration, used to validate incoming access tokens - same app registration used for local development, see config/local.json')
+param entraClientId string = '88edd827-531c-4044-852c-8cc8fe493c63'
+
+@secure()
+@description('Shared key the dashboard uses to call the backend /external endpoints (see ApiKeyAuthenticationHandler). Leave empty to disable that integration.')
+param backendApiKey string = ''
+
 var resourceToken = toLower('${environmentName}')
 var storageAccountName = toLower('stcaesarcompl${resourceToken}')
 var tags = {
@@ -93,6 +103,11 @@ module webApp 'modules/web-app.bicep' = {
       additionalCorsAllowedOrigins
     )
     storageAccountName: storageAccountName
+    frontendOrigin: 'https://${staticWebApp.outputs.defaultHostName}'
+    dashboardOrigin: 'https://${dashboardStaticWebApp.outputs.defaultHostName}'
+    entraTenantId: entraTenantId
+    entraClientId: entraClientId
+    apiKey: backendApiKey
     tags: tags
   }
 }

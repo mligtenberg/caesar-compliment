@@ -8,65 +8,12 @@
 import { readFileSync, watch, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
+import { stripJsonComments } from './strip-json-comments.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const configPath = path.join(repoRoot, 'config', 'local.json');
 const frontendOutPath = path.join(repoRoot, 'apps/frontend/src/environments/environment.development.ts');
 const dashboardOutPath = path.join(repoRoot, 'apps/dashboard/src/environments/environment.development.ts');
-
-// config/local.json allows // and /* */ comments (the backend's JSON config
-// provider already tolerates these; JSON.parse doesn't, so strip them here).
-// Comment-like sequences inside string values are left alone.
-function stripJsonComments(text) {
-  let result = '';
-  let inString = false;
-  let inLineComment = false;
-  let inBlockComment = false;
-
-  for (let i = 0; i < text.length; i++) {
-    const c = text[i];
-    const next = text[i + 1];
-
-    if (inLineComment) {
-      if (c === '\n') {
-        inLineComment = false;
-        result += c;
-      }
-      continue;
-    }
-    if (inBlockComment) {
-      if (c === '*' && next === '/') {
-        inBlockComment = false;
-        i++;
-      }
-      continue;
-    }
-    if (inString) {
-      result += c;
-      if (c === '\\') {
-        result += next;
-        i++;
-      } else if (c === '"') {
-        inString = false;
-      }
-      continue;
-    }
-    if (c === '"') {
-      inString = true;
-      result += c;
-    } else if (c === '/' && next === '/') {
-      inLineComment = true;
-      i++;
-    } else if (c === '/' && next === '*') {
-      inBlockComment = true;
-      i++;
-    } else {
-      result += c;
-    }
-  }
-
-  return result;
-}
 
 function generate() {
   const config = JSON.parse(stripJsonComments(readFileSync(configPath, 'utf8')));

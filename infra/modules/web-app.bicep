@@ -17,6 +17,22 @@ param corsAllowedOrigins array = []
 @description('Name of the Storage Account backing table storage')
 param storageAccountName string
 
+@description('Allowed origin for the frontend app, used for the backend\'s own CORS policy (see Program.cs)')
+param frontendOrigin string
+
+@description('Allowed origin for the dashboard app, used for the backend\'s own CORS policy (see Program.cs)')
+param dashboardOrigin string
+
+@description('Entra ID tenant ID used to validate incoming access tokens')
+param entraTenantId string
+
+@description('Client ID of this app registration, used to validate incoming access tokens')
+param entraClientId string
+
+@secure()
+@description('Shared key the dashboard uses to call the /external endpoints. Graph is authenticated with the system-assigned managed identity instead, so no client secret is ever set here (see Program.cs)')
+param apiKey string = ''
+
 @description('Tags to apply to the resource')
 param tags object = {}
 
@@ -53,6 +69,26 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'Storage__AccountName'
           value: storageAccountName
+        }
+        {
+          name: 'Frontend__Origin'
+          value: frontendOrigin
+        }
+        {
+          name: 'Dashboard__Origin'
+          value: dashboardOrigin
+        }
+        {
+          name: 'backend__TenantId'
+          value: entraTenantId
+        }
+        {
+          name: 'backend__ClientId'
+          value: entraClientId
+        }
+        {
+          name: 'ApiKey'
+          value: apiKey
         }
       ]
     }
