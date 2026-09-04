@@ -79,11 +79,11 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
           value: dashboardOrigin
         }
         {
-          name: 'backend__TenantId'
+          name: 'backend__tenantId'
           value: entraTenantId
         }
         {
-          name: 'backend__ClientId'
+          name: 'backend__clientId'
           value: entraClientId
         }
         {
