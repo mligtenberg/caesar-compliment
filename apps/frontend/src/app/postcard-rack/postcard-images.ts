@@ -27,3 +27,11 @@ export function postcardIsLandscape(cardName: string): boolean {
   if (!entry || typeof entry === 'string') return false;
   return entry.orientation === 'landscape';
 }
+
+// Warms the browser's HTTP cache for every card front so picking a card (or
+// showing one back on receive) doesn't stall on a network fetch.
+export function precachePostcardImages(): void {
+  for (const image of POSTCARD_IMAGES) {
+    new Image().src = typeof image === 'string' ? image : image.url;
+  }
+}

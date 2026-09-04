@@ -3,6 +3,7 @@ import { ApiClientService } from './api-client.service';
 import { ApiKeyService } from './api-key.service';
 import { Compliment } from './compliment.model';
 import { ComplimentsReel } from './compliments-reel/compliments-reel';
+import { precachePostcardImages } from './compliments-reel/postcard-images';
 
 @Component({
   selector: 'app-root',
@@ -19,6 +20,8 @@ export class App {
   protected readonly error = signal<string | null>(null);
 
   constructor() {
+    precachePostcardImages();
+
     if (!this.apiKey.value) {
       this.error.set('Missing ?api_key= in the URL.');
       return;

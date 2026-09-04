@@ -4,6 +4,7 @@ import { MsalService } from '@azure/msal-angular';
 import { filter } from 'rxjs';
 import { loginRequest } from './auth-config';
 import { ApiClientService } from './api-client.service';
+import { precachePostcardImages } from './postcard-rack/postcard-images';
 
 @Component({
   imports: [RouterModule],
@@ -23,6 +24,8 @@ export class App implements OnInit {
   protected readonly inAdmin = signal(false);
 
   ngOnInit(): void {
+    precachePostcardImages();
+
     if (!this.msalService.instance.getActiveAccount()) {
       const [firstAccount] = this.msalService.instance.getAllAccounts();
       if (firstAccount) {

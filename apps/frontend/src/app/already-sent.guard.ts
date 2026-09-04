@@ -3,7 +3,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { ApiClientService } from './api-client.service';
 import { postcardFrontSrc, postcardIsLandscape } from './postcard-rack/postcard-images';
 import { ThanksDataService } from './thanks-overlay/thanks-data.service';
-import { renderFinishedPostcardBack } from './postcard-rack/postcard-back-renderer';
+import { renderFinishedPostcardBackLandscape } from './postcard-rack/postcard-back-renderer';
 
 // A user can only ever send one compliment (see backend: RowKey is the sender's
 // own object id). If they already have, skip straight to the thanks screen
@@ -19,7 +19,7 @@ export const alreadySentGuard: CanActivateFn = async () => {
   thanksData.set({
     frontSrc: postcardFrontSrc(compliment.cardName),
     frontIsLandscape: postcardIsLandscape(compliment.cardName),
-    backSrc: renderFinishedPostcardBack(compliment.text, compliment.recipientName),
+    backSrc: renderFinishedPostcardBackLandscape(compliment.text, compliment.recipientName),
     text: compliment.text,
     recipientName: compliment.recipientName,
     cardName: compliment.cardName,

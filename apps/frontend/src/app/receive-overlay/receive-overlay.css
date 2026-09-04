@@ -14,10 +14,37 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: #224f82;
+  background: #17335a;
+}
+
+/* Big-top circus pinwheel in Caesar Groep's own blues, slowly spinning.
+   Oversized (inset -75%) so corners never show through the viewport as it
+   turns. */
+.receive-stage::before {
+  content: '';
+  position: absolute;
+  inset: -75%;
+  z-index: 0;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    #2e62a0 0deg 11.25deg,
+    #224f82 11.25deg 22.5deg
+  );
+  animation: receive-bg-spin 130s linear infinite;
+}
+
+@keyframes receive-bg-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .empty {
+  position: relative;
+  z-index: 1;
   color: #fff;
   font-family: Montserrat, -apple-system, sans-serif;
   font-weight: 700;
@@ -33,6 +60,7 @@
    back out, it just holds in place (animation-fill-mode: forwards below). */
 .receive-card {
   position: relative;
+  z-index: 1;
   width: var(--card-w);
   height: var(--card-h);
   perspective: 1600px;

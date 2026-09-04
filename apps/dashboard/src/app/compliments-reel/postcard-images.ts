@@ -21,3 +21,11 @@ export function postcardFrontIsLandscape(cardName: string): boolean {
   if (!entry || typeof entry === 'string') return false;
   return entry.orientation === 'landscape';
 }
+
+// Warms the browser's HTTP cache for every card front so the reel's flying
+// cards never stall on a network fetch mid-animation.
+export function precachePostcardImages(): void {
+  for (const image of POSTCARD_IMAGES) {
+    new Image().src = typeof image === 'string' ? image : image.url;
+  }
+}

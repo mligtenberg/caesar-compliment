@@ -26,7 +26,7 @@ function layoutText(ctx: CanvasRenderingContext2D, text: string, maxWidth: numbe
   return lines;
 }
 
-export function renderFinishedPostcardBack(text: string, recipientName: string): string {
+function bakePortraitBack(text: string, recipientName: string): HTMLCanvasElement {
   const backCanvas = document.createElement('canvas');
   backCanvas.width = CANVAS_W;
   backCanvas.height = CANVAS_H;
@@ -101,10 +101,33 @@ export function renderFinishedPostcardBack(text: string, recipientName: string):
   lines.forEach((line, i) => ctx.fillText(line, TEXT_X, TEXT_Y + i * TEXT_LINE_H));
   ctx.restore();
 
-  // Portrait-baked (matching rack.js's renderBack(), not its
-  // landscapeBackDataUrl() undo step) — the physical card mesh stays
-  // portrait-shaped, and it's the CSS roll (rotateZ 90deg alongside the
-  // rotateY flip in receive-overlay.css) that turns this the right way up
-  // as landscape on screen.
-  return backCanvas.toDataURL('image/png');
+  return backCanvas;
+}
+
+// Portrait-baked (matching rack.js's renderBack(), not its
+// landscapeBackDataUrl() undo step) — the physical card mesh stays
+// portrait-shaped, and it's the CSS roll (rotateZ 90deg alongside the
+// rotateY flip in receive-overlay.css) that turns this the right way up
+// as landscape on screen. Only correct for a face that actually gets that
+// roll; anything drawing the back standalone wants
+// renderFinishedPostcardBackLandscape() instead.
+export function renderFinishedPostcardBack(text: string, recipientName: string): string {
+  return bakePortraitBack(text, recipientName).toDataURL('image/png');
+}
+
+// The same back, un-baked into a true landscape image so it reads upright
+// with no transform of its own — matches rack.js's landscapeBackDataUrl(),
+// used wherever the back is shown without a corrective roll (thanks page,
+// already-sent redirect).
+export function renderFinishedPostcardBackLandscape(text: string, recipientName: string): string {
+  const portrait = bakePortraitBack(text, recipientName);
+  const out = document.createElement('canvas');
+  out.width = CANVAS_H;
+  out.height = CANVAS_W;
+  const octx = out.getContext('2d')!;
+  octx.translate(out.width / 2, out.height / 2);
+  // The bake pre-rotates its content +90°, so undo exactly that.
+  octx.rotate(-Math.PI / 2);
+  octx.drawImage(portrait, -CANVAS_W / 2, -CANVAS_H / 2);
+  return out.toDataURL('image/png');
 }

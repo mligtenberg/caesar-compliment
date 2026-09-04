@@ -1,5 +1,14 @@
 :host {
   display: block;
+  /* Same fixed portrait card frame as the dashboard reel / receive overlay -
+     "landscape" faces are sized to swap dims and center within it, rather
+     than resizing the frame itself. */
+  --card-h: min(32vh, 58vw);
+  --card-w: calc(var(--card-h) * 96 / 138);
+  /* Half the card's diagonal, as a fraction of its height: sqrt(w^2 + h^2)/2
+     with w = h * 96/138. A card tilted onto a corner has that corner exactly
+     half a diagonal from its middle, so this is what places the spin's pivot. */
+  --half-diagonal: calc(var(--card-h) * 0.6091);
 }
 .thanks-overlay {
   display: flex;
@@ -17,28 +26,98 @@
   from { opacity: 0; }
   to { opacity: 1; }
 }
-.thanks-overlay .thanks-cards {
+/* The room the spin needs. Every point of the card stays within half a
+   diagonal of the pivot horizontally and vertically, so the swept area is
+   about 1.22 card-heights square, centred on the card's own middle - rounded
+   up here for the bit of extra size perspective lends the near edge. Reserving
+   it as a real box keeps the text below laid out clear of the sweep. */
+.thanks-overlay .thanks-card-stage {
   display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
+  width: calc(var(--card-h) * 1.35);
+  height: calc(var(--card-h) * 1.28);
 }
-.thanks-overlay .thanks-card-img {
-  width: 160px;
-  max-width: 38vw;
-  aspect-ratio: 96 / 138;
+/* A card balanced on one corner, slowly spinning on that corner - the lean and
+   the spin are deliberately kept on separate elements and in this order. The
+   lean is a Z rotation carried by the faces themselves (below), so it is
+   applied first, in the card's own frame; the turn here is then a plain 360deg
+   about the screen's vertical, applied to the already-leaning card. That makes
+   the lean precess around the upright axis the way a real card on its tip
+   does, rather than the card tumbling about its own tilted axis - which is
+   what happens if the two are composed the other way round.
+   The pivot is the resting corner: half a diagonal straight below the card's
+   middle, which for this 96:138 card is exactly where a 35deg tilt puts the
+   bottom-right one. Both the rotation axis and the vanishing point sit there,
+   so that corner stays planted while the rest of the card swings around it. */
+.thanks-overlay .thanks-card {
+  position: relative;
+  flex: none;
+  width: var(--card-w);
+  height: var(--card-h);
+  perspective: 1600px;
+  perspective-origin: 50% calc(50% + var(--half-diagonal));
+}
+.thanks-overlay .thanks-card-flip {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transform-origin: 50% calc(50% + var(--half-diagonal));
+  animation: thanks-card-spin 12000ms linear infinite;
+}
+/* One unbroken revolution - no dwell on either face, and linear rather than
+   eased, since anything else would pulse at the seam where 360deg meets 0deg. */
+@keyframes thanks-card-spin {
+  from {
+    transform: rotateY(0deg);
+  }
+  to {
+    transform: rotateY(360deg);
+  }
+}
+.thanks-overlay .thanks-card-face {
+  position: absolute;
   object-fit: cover;
-  border-radius: 6px;
+  border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
   background: #fff;
+  backface-visibility: hidden;
+  /* The lean. Leftmost in every face's transform list, so it is the outermost
+     of the face's own rotations and the spin above still composes on top. */
+  transform: rotate(35deg);
 }
-.thanks-overlay .thanks-card-img.is-landscape {
-  width: 230px;
-  max-width: 54vw;
-  aspect-ratio: 138 / 96;
+.thanks-overlay .thanks-card-face.is-portrait-face {
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
-.thanks-overlay .thanks-card-img:not([src]) { display: none; }
+/* Both faces have to sit on one and the same rectangle, or the card changes
+   shape halfway through its turn instead of reading as one solid object. A
+   landscape-shaped image - always the back, and a landscape front photo - is
+   therefore sized with the frame's dims swapped, centred, and given a quarter
+   turn, which lands it exactly on the portrait footprint. It then reads on its
+   side, which is accepted for this view: keeping the card one rectangle
+   matters more here than the back's writing being upright. */
+.thanks-overlay .thanks-card-face.is-landscape-face {
+  width: var(--card-h);
+  height: var(--card-w);
+  top: 50%;
+  left: 50%;
+  margin-top: calc(var(--card-w) / -2);
+  margin-left: calc(var(--card-h) / -2);
+  transform: rotate(35deg) rotate(-90deg);
+}
+.thanks-overlay .thanks-card-back {
+  transform: rotate(35deg) rotateY(180deg);
+}
+/* The back's quarter turn goes the other way to the front's. Turned away by
+   the rotateY(180deg), the card's lean reads as -35deg rather than +35deg on
+   screen, so it is +90deg that leaves the writing tilted the same way round as
+   the front is - -90deg from here lands it very nearly upside down. */
+.thanks-overlay .thanks-card-back.is-landscape-face {
+  transform: rotate(35deg) rotateY(180deg) rotate(90deg);
+}
 .thanks-overlay .thanks-text {
   color: #fff;
   font-family: Montserrat, -apple-system, sans-serif;

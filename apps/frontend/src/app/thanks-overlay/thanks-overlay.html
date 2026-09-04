@@ -1,10 +1,24 @@
 @if (thanks(); as t) {
   <div class="thanks-overlay is-visible">
-    <div class="thanks-cards">
-      @if (t.frontSrc) {
-        <img class="thanks-card-img" [class.is-landscape]="t.frontIsLandscape" [src]="t.frontSrc" alt="Voorkant van de verstuurde kaart" />
-      }
-      <img class="thanks-card-img is-landscape" [src]="t.backSrc" alt="Achterkant van de kaart met postzegel en compliment" />
+    <div class="thanks-card-stage">
+      <div class="thanks-card">
+        <div class="thanks-card-flip">
+          @if (t.frontSrc) {
+            <img
+              class="thanks-card-face thanks-card-front"
+              [class.is-landscape-face]="t.frontIsLandscape"
+              [class.is-portrait-face]="!t.frontIsLandscape"
+              [src]="t.frontSrc"
+              alt="Voorkant van de verstuurde kaart"
+            />
+          }
+          <img
+            class="thanks-card-face thanks-card-back is-landscape-face"
+            [src]="t.backSrc"
+            alt="Achterkant van de kaart met postzegel en compliment"
+          />
+        </div>
+      </div>
     </div>
     @if (t.text) {
       <p class="thanks-text">{{ t.text }}</p>
