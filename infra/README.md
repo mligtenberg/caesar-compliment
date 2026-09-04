@@ -25,6 +25,8 @@ Override `environmentName`, `appServicePlanSku`, `staticWebAppSku`, `staticWebAp
 
 `backendApiKey` is the shared key the dashboard uses to call the backend's `/external` endpoints (see `apps/backend/Auth/ApiKeyAuthenticationHandler.cs`). It has no safe default - pass it explicitly (`--parameters backendApiKey=<value>`) or the deployed backend will reject all dashboard calls. It's an App Service setting only; it's never baked into the dashboard build (the dashboard reads it at runtime from its own URL's `?api_key=...` query param).
 
+`staticWebAppCustomDomain` binds a custom domain (e.g. `complimentje.caesar.nl`) to the **frontend** Static Web App only. CI/CD passes this as `complimentje.caesar.nl` for the `prod` environment. Azure validates the domain via a CNAME record pointing at the Static Web App's `defaultHostName`, so **that DNS record must already exist and resolve before the deployment runs**, or the `customDomains` sub-resource will fail/hang waiting for validation. Get the target hostname from the `frontendUrl` bicep output (or `az staticwebapp show`) after an initial deploy without the custom domain, create the CNAME, then re-run the deployment with `staticWebAppCustomDomain` set.
+
 ## Deploying the frontend/dashboard builds
 
 The Static Web Apps are created with no linked source provider, so pushing the built `frontend`/`dashboard` apps is done out-of-band, e.g. with the [SWA CLI](https://azure.github.io/static-web-apps-cli/):

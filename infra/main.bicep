@@ -19,6 +19,9 @@ param staticWebAppSku string = 'Free'
 @description('Location for the Static Web App (only available in a subset of regions, e.g. westeurope)')
 param staticWebAppLocation string = 'westeurope'
 
+@description('Custom domain to bind to the main Static Web App. Leave empty to skip. Requires a CNAME record pointing at the app default hostname to already exist for validation to succeed.')
+param staticWebAppCustomDomain string = ''
+
 @description('Additional CORS origins to allow on the backend API, beyond the deployed frontend URL')
 param additionalCorsAllowedOrigins array = []
 
@@ -75,6 +78,7 @@ module staticWebApp 'modules/static-web-app.bicep' = {
     location: staticWebAppLocation
     skuName: staticWebAppSku
     tags: tags
+    customDomainName: staticWebAppCustomDomain
   }
 }
 
