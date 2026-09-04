@@ -1,7 +1,7 @@
-@if (compliments.length === 0) {
-  <p class="empty">No compliments yet.</p>
-} @else {
-  <div class="reel-stage">
+<div class="reel-stage">
+  @if (compliments.length === 0) {
+    <p class="empty">No compliments yet.</p>
+  } @else {
     <app-falling-cards [compliments]="compliments" />
     @for (card of cards(); track card.id) {
       <div
@@ -30,9 +30,11 @@
         </div>
       </div>
     }
+  }
+  @if (qrText; as text) {
     <div class="qr-card">
-      <img class="qr-card-code" src="assets/qr-compliment.svg" alt="QR-code om zelf een complimentje te sturen" />
-      <p class="qr-card-text">Ook een complimentje sturen?</p>
+      <img class="qr-card-code" src="assets/qr-compliment.svg" [alt]="text" />
+      <p class="qr-card-text">{{ text }}</p>
     </div>
-  </div>
-}
+  }
+</div>

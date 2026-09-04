@@ -1,4 +1,5 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, signal } from '@angular/core';
+import { AppState } from '../api-client.service';
 import { Compliment } from '../compliment.model';
 import { postcardFrontIsLandscape } from './postcard-images';
 import { renderFinishedPostcardBack } from './postcard-back-renderer';
@@ -74,8 +75,23 @@ function randomFlight(): Pick<ReelCard, 'inX' | 'inY' | 'inRot' | 'outX' | 'outY
 })
 export class ComplimentsReel implements OnChanges, OnDestroy {
   @Input() compliments: Compliment[] = [];
+  @Input() appState: AppState | null = null;
 
   protected readonly cards = signal<ReelCard[]>([]);
+
+  // The QR points at the send flow while it's open and at the receive flow once
+  // the compliments are being delivered; while everything is locked there is
+  // nothing to invite anyone to, so the card stays hidden.
+  protected get qrText(): string | null {
+    switch (this.appState) {
+      case 'Open':
+        return 'Ook een complimentje sturen?';
+      case 'Receive':
+        return 'Jouw complimentje zien?';
+      default:
+        return null;
+    }
+  }
 
   private queue: Compliment[] = [];
   private queueIndex = 0;

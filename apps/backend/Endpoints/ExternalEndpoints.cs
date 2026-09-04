@@ -23,6 +23,12 @@ internal static class ExternalEndpoints
             return Results.Ok(result);
         })
         .WithName("GetAll");
+
+        // The dashboard drives part of its UI off the app state (the QR call-to-action),
+        // and can't reach the user-authenticated GET /appstate with just its API key.
+        app.MapGet("/appstate", async (IAppStateRepository appState) =>
+            Results.Ok(await appState.GetStateAsync()))
+        .WithName("GetAppStateExternal");
     }
 }
 

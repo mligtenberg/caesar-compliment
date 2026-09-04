@@ -3,5 +3,5 @@
 } @else if (loading()) {
   <p>Loading…</p>
 } @else {
-  <app-compliments-reel [compliments]="compliments()" />
+  <app-compliments-reel [compliments]="compliments()" [appState]="appState()" />
 }
