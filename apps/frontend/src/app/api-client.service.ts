@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { catchError, firstValueFrom, of } from 'rxjs';
+import { catchError, firstValueFrom, of, timeout } from 'rxjs';
 import { environment } from '../environments/environment';
 import { Recipient } from './recipient-search/recipient.model';
 
@@ -38,6 +38,7 @@ export interface NotifyResult {
   sent: number;
   withoutAddress: number;
   failed: number;
+  seconds: number;
 }
 
 export interface AdminCompliment {
@@ -148,9 +149,13 @@ export class ApiClientService {
     );
   }
 
+  // Mailing the whole list happens in one request, one mail at a time, so this can
+  // legitimately run for minutes - far past what the browser's usual patience allows.
   notifyRecipients(): Promise<NotifyResult> {
     return firstValueFrom(
-      this.http.post<NotifyResult>(`${environment.api.baseUrl}/admin/notify`, {})
+      this.http
+        .post<NotifyResult>(`${environment.api.baseUrl}/admin/notify`, {})
+        .pipe(timeout(5 * 60 * 1000))
     );
   }
 

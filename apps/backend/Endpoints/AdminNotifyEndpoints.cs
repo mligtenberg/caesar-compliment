@@ -21,6 +21,7 @@ internal static class AdminNotifyEndpoints
 
             var recipientIds = await compliments.GetComplimentedRecipientIdsAsync();
 
+            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var sent = 0;
             var withoutAddress = 0;
             var failed = 0;
@@ -49,10 +50,15 @@ internal static class AdminNotifyEndpoints
                 }
             }
 
-            return Results.Ok(new NotifyResult(sent, withoutAddress, failed));
+            stopwatch.Stop();
+            logger.LogInformation(
+                "Mailed {Sent} compliment mails ({Failed} failed) in {Seconds:0.0}s.",
+                sent, failed, stopwatch.Elapsed.TotalSeconds);
+
+            return Results.Ok(new NotifyResult(sent, withoutAddress, failed, Math.Round(stopwatch.Elapsed.TotalSeconds, 1)));
         })
         .WithName("NotifyRecipients");
     }
 }
 
-record NotifyResult(int Sent, int WithoutAddress, int Failed);
+record NotifyResult(int Sent, int WithoutAddress, int Failed, double Seconds);

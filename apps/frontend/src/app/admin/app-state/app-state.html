@@ -39,7 +39,7 @@
 
       @if (mailResult(); as result) {
         <p class="mail-result">
-          {{ result.sent }} mail(s) verstuurd.
+          {{ result.sent }} mail(s) verstuurd in {{ result.seconds }}s.
           @if (result.withoutAddress) { {{ result.withoutAddress }} zonder mailadres overgeslagen. }
           @if (result.failed) { {{ result.failed }} mislukt. }
         </p>
