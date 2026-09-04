@@ -78,7 +78,7 @@ module staticWebApp 'modules/static-web-app.bicep' = {
     location: staticWebAppLocation
     skuName: staticWebAppSku
     tags: tags
-    customDomainName: staticWebAppCustomDomain
+    //customDomainName: staticWebAppCustomDomain
   }
 }
 
