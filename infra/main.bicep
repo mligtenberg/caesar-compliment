@@ -33,7 +33,7 @@ param entraClientId string = '88edd827-531c-4044-852c-8cc8fe493c63'
 param backendApiKey string = ''
 
 var resourceToken = toLower('${environmentName}')
-var storageAccountName = toLower('stcaesarcompl${resourceToken}')
+var storageAccountName = toLower('stcaesarcomp${resourceToken}')
 var tags = {
   environment: environmentName
   application: 'caesar-compliment'
