@@ -146,3 +146,41 @@
     transform: rotateY(180deg) rotateZ(90deg);
   }
 }
+
+/* Static call-to-action in the bottom-right corner, above the flying cards
+   (z-index 1) and the drifting background (z-index 0). */
+.qr-card {
+  --qr-size: clamp(150px, 18vh, 320px);
+  position: absolute;
+  right: clamp(16px, 2vw, 40px);
+  bottom: clamp(16px, 2vw, 40px);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 1em;
+  border-radius: 20px;
+  background: #fff;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.qr-card-code {
+  display: block;
+  width: var(--qr-size);
+  height: auto;
+  /* The SVG is cropped to the modules themselves, so the quiet zone the
+     scanner needs comes from here. */
+  padding: 1em 1em 0.5em 1em;
+}
+
+.qr-card-text {
+  margin: 0;
+  max-width: calc(var(--qr-size) * 1.3);
+  color: #091926;
+  font-family: Montserrat, -apple-system, sans-serif;
+  font-size: clamp(16px, 2vh, 24px);
+  font-weight: 600;
+  line-height: 1.25;
+  text-align: center;
+}
