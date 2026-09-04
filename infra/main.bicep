@@ -95,7 +95,7 @@ module dashboardStaticWebApp 'modules/static-web-app.bicep' = {
 module webApp 'modules/web-app.bicep' = {
   name: 'web-app'
   params: {
-    name: 'app-caesar-compliment-${resourceToken}'
+    name: 'app-caesar-complimentje-${resourceToken}'
     location: location
     appServicePlanId: appServicePlan.outputs.id
     appInsightsConnectionString: appInsights.outputs.connectionString
