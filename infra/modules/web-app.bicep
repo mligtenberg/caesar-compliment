@@ -29,6 +29,9 @@ param entraTenantId string
 @description('Client ID of this app registration, used to validate incoming access tokens')
 param entraClientId string
 
+@description('Mailbox the compliment mails are sent from, using the app registration\'s Mail.Send application permission (see GraphMailService.cs)')
+param mailSender string = ''
+
 @secure()
 @description('Shared key the dashboard uses to call the /external endpoints. Graph is authenticated with the system-assigned managed identity instead, so no client secret is ever set here (see Program.cs)')
 param apiKey string = ''
@@ -85,6 +88,10 @@ resource webApp 'Microsoft.Web/sites@2023-12-01' = {
         {
           name: 'backend__clientId'
           value: entraClientId
+        }
+        {
+          name: 'Mail__Sender'
+          value: mailSender
         }
         {
           name: 'ApiKey'

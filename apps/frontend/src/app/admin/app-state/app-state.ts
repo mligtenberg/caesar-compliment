@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { ApiClientService, AppState } from '../../api-client.service';
+import { ApiClientService, AppState, NotifyResult } from '../../api-client.service';
 
 @Component({
   selector: 'app-admin-app-state',
@@ -20,6 +20,10 @@ export class AppStatePage implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
 
+  protected readonly mailing = signal(false);
+  protected readonly mailResult = signal<NotifyResult | null>(null);
+  protected readonly mailError = signal<string | null>(null);
+
   ngOnInit(): void {
     this.apiClient
       .getAppState()
@@ -33,6 +37,8 @@ export class AppStatePage implements OnInit {
 
     this.saving.set(true);
     this.error.set(null);
+    this.mailResult.set(null);
+    this.mailError.set(null);
     try {
       await this.apiClient.setAppState(state);
       this.current.set(state);
@@ -40,6 +46,23 @@ export class AppStatePage implements OnInit {
       this.error.set('Kon de status niet opslaan.');
     } finally {
       this.saving.set(false);
+    }
+  }
+
+  // Mailing everyone at once can't be taken back, so it asks first - and it only
+  // exists while the app is in Receive, which is when the mail's message is true.
+  protected async sendMails(): Promise<void> {
+    if (!confirm('Iedereen die een complimentje heeft gekregen een mail sturen?')) return;
+
+    this.mailing.set(true);
+    this.mailError.set(null);
+    this.mailResult.set(null);
+    try {
+      this.mailResult.set(await this.apiClient.notifyRecipients());
+    } catch {
+      this.mailError.set('Kon de mails niet versturen.');
+    } finally {
+      this.mailing.set(false);
     }
   }
 }

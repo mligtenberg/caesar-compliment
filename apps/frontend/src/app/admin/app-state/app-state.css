@@ -60,3 +60,48 @@ h1 {
   font-size: 13px;
   color: #5a7391;
 }
+
+.mail-section {
+  max-width: 480px;
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #dde5ef;
+}
+
+.mail-section h2 {
+  font-size: 18px;
+  margin: 0 0 4px;
+}
+
+.mail-description {
+  font-size: 13px;
+  color: #5b6b7d;
+  margin: 0 0 16px;
+}
+
+.mail-button {
+  padding: 12px 24px;
+  border: 0;
+  border-radius: 999px;
+  background: #e9575b;
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mail-button:hover:not(:disabled) {
+  background: #a43d41;
+}
+
+.mail-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.mail-result {
+  margin: 12px 0 0;
+  font-size: 14px;
+  font-weight: 700;
+}

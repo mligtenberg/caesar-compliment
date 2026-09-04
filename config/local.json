@@ -10,6 +10,11 @@
     "clientId": "2884ee29-a28e-4cab-83fe-2dfb80b1ef5f",
     "origin": "http://localhost:4200"
   },
+  "mail": {
+    // Mailbox the compliment mails go out from; needs the app registration's
+    // Mail.Send application permission on it.
+    "sender": "complimentje@caesar.nl"
+  },
   "dashboard": {
     "origin": "http://localhost:4201"
   }

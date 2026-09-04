@@ -10,6 +10,8 @@ internal interface IRecipientsRepository
 
     string? GetFirstNameById(string id);
 
+    string? GetEmailById(string id);
+
     string? GetIdByViewerEmail(string? viewerEmail);
 }
 

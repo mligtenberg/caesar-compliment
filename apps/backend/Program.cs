@@ -135,11 +135,16 @@ builder.Services.AddHttpClient<IUserLookupService, EntraUserLookupService>(clien
 {
     client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");
 });
+builder.Services.AddHttpClient<IMailService, GraphMailService>(client =>
+{
+    client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");
+});
 
 builder.Services.AddSingleton<IComplimentsRepository, ComplimentsRepository>();
 builder.Services.AddSingleton<IRecipientsRepository, RecipientsRepository>();
 builder.Services.AddSingleton<IRolesRepository, RolesRepository>();
 builder.Services.AddSingleton<IAppStateRepository, AppStateRepository>();
+builder.Services.AddSingleton<ReceivedComplimentMail>();
 
 var app = builder.Build();
 
@@ -168,6 +173,7 @@ userPages.MapRolesEndpoints();
 userPages.MapAppStateEndpoints();
 userPages.MapAdminComplimentsEndpoints();
 userPages.MapAdminSendEndpoints();
+userPages.MapAdminNotifyEndpoints();
 
 // Area 2: server-to-server access (e.g. the dashboard), secured by a shared API key
 // instead of a user sign-in.

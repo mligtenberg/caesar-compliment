@@ -34,6 +34,12 @@ export interface ReceivedCompliment {
   text: string;
 }
 
+export interface NotifyResult {
+  sent: number;
+  withoutAddress: number;
+  failed: number;
+}
+
 export interface AdminCompliment {
   senderId: string;
   senderName: string;
@@ -139,6 +145,12 @@ export class ApiClientService {
   setAppState(state: AppState): Promise<void> {
     return firstValueFrom(
       this.http.post<void>(`${environment.api.baseUrl}/admin/appstate`, { state })
+    );
+  }
+
+  notifyRecipients(): Promise<NotifyResult> {
+    return firstValueFrom(
+      this.http.post<NotifyResult>(`${environment.api.baseUrl}/admin/notify`, {})
     );
   }
 

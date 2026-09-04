@@ -96,3 +96,12 @@ az ad app federated-credential create --id <backend-app-registration-client-id> 
 ```
 
 This only needs to run once per deployed environment (or again if the app is redeployed with a new managed identity, which resets its principal ID).
+
+## Sending the compliment mails
+
+Admins can mail everyone who received a compliment from the admin's Status page while the app is in `Receive` (see `apps/backend/Endpoints/AdminNotifyEndpoints.cs`). That uses the same app registration's **Mail.Send** application permission, which can send as any mailbox in the tenant, so the mailbox to send from is configured explicitly. It defaults to `complimentje@caesar.nl` everywhere, and can be overridden:
+
+- deployed: the `mailSender` Bicep parameter, surfaced as the `Mail__Sender` app setting
+- locally: `mail.sender` in `config/local.json`
+
+If it is blanked out the endpoint fails rather than guessing a sender. Consider scoping Mail.Send to just that mailbox with an [application access policy](https://learn.microsoft.com/en-us/graph/auth-limit-mailbox-access).

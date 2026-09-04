@@ -32,6 +32,9 @@ param entraClientId string = '88edd827-531c-4044-852c-8cc8fe493c63'
 @description('Shared key the dashboard uses to call the backend /external endpoints (see ApiKeyAuthenticationHandler). Leave empty to disable that integration.')
 param backendApiKey string = ''
 
+@description('Mailbox the compliment mails are sent from')
+param mailSender string = 'complimentje@caesar.nl'
+
 var resourceToken = toLower('${environmentName}')
 var storageAccountName = toLower('stcaesarcomp${resourceToken}')
 var tags = {
@@ -109,6 +112,7 @@ module webApp 'modules/web-app.bicep' = {
     entraTenantId: entraTenantId
     entraClientId: entraClientId
     apiKey: backendApiKey
+    mailSender: mailSender
     tags: tags
   }
 }

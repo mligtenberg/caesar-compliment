@@ -21,4 +21,29 @@
       </button>
     }
   </div>
+
+  @if (current() === 'Receive') {
+    <section class="mail-section">
+      <h2>Bezorg de complimentjes per mail</h2>
+      <p class="mail-description">
+        Stuurt iedereen die een complimentje heeft gekregen een mail met een link naar de actie.
+      </p>
+
+      <button type="button" class="mail-button" [disabled]="mailing()" (click)="sendMails()">
+        {{ mailing() ? 'Bezig met versturen…' : 'Verstuur de mails' }}
+      </button>
+
+      @if (mailError()) {
+        <p class="error">{{ mailError() }}</p>
+      }
+
+      @if (mailResult(); as result) {
+        <p class="mail-result">
+          {{ result.sent }} mail(s) verstuurd.
+          @if (result.withoutAddress) { {{ result.withoutAddress }} zonder mailadres overgeslagen. }
+          @if (result.failed) { {{ result.failed }} mislukt. }
+        </p>
+      }
+    </section>
+  }
 }

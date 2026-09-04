@@ -11,6 +11,7 @@ internal class RecipientsRepository : IRecipientsRepository
     private IReadOnlyList<RecipientRow> _recipients = [];
     private IReadOnlyDictionary<string, string> _upnById = new Dictionary<string, string>();
     private IReadOnlyDictionary<string, string> _firstNameById = new Dictionary<string, string>();
+    private IReadOnlyDictionary<string, string> _emailById = new Dictionary<string, string>();
 
     public RecipientsRepository(BlobServiceClient blobServiceClient, IHostEnvironment environment)
     {
@@ -54,11 +55,15 @@ internal class RecipientsRepository : IRecipientsRepository
         _recipients = recipients;
         _upnById = recipients.ToDictionary(r => r.Id, r => r.Upn);
         _firstNameById = recipients.ToDictionary(r => r.Id, r => r.FirstName);
+        // A handful of rows have no mail column filled in; their UPN is the mailbox anyway.
+        _emailById = recipients.ToDictionary(r => r.Id, r => string.IsNullOrWhiteSpace(r.Email) ? r.Upn : r.Email);
     }
 
     public string? GetUpnById(string id) => _upnById.GetValueOrDefault(id);
 
     public string? GetFirstNameById(string id) => _firstNameById.GetValueOrDefault(id);
+
+    public string? GetEmailById(string id) => _emailById.GetValueOrDefault(id);
 
     // Same email/username matching quirk as Search's own viewer lookup - the signed-in
     // account's domain doesn't reliably match the CSV's, so match on the local part only.
