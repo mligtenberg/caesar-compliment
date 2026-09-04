@@ -60,6 +60,16 @@ internal class RecipientsRepository : IRecipientsRepository
 
     public string? GetFirstNameById(string id) => _firstNameById.GetValueOrDefault(id);
 
+    // Same email/username matching quirk as Search's own viewer lookup - the signed-in
+    // account's domain doesn't reliably match the CSV's, so match on the local part only.
+    public string? GetIdByViewerEmail(string? viewerEmail)
+    {
+        var localPart = LocalPart(viewerEmail);
+        if (localPart is null) return null;
+
+        return _recipients.FirstOrDefault(r => string.Equals(r.Username, localPart, StringComparison.OrdinalIgnoreCase))?.Id;
+    }
+
     public IReadOnlyList<Recipient> Search(string? term, string? viewerEmail, IReadOnlySet<string> excludedRecipientIds)
     {
         // The signed-in account's domain doesn't reliably match the CSV's - people move

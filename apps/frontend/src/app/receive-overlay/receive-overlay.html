@@ -1,0 +1,32 @@
+@if (!loading() && empty()) {
+  <div class="receive-stage">
+    <p class="empty">Er is nog geen complimentje voor je binnengekomen.</p>
+  </div>
+} @else {
+  <div class="receive-stage">
+    @for (c of cards(); track c.id) {
+      <div
+        class="receive-card"
+        [class.is-landscape-front]="c.frontIsLandscape"
+        [style.--in-x.px]="c.inX"
+        [style.--in-y.px]="c.inY"
+        [style.--in-rot.deg]="c.inRot"
+      >
+        <div class="receive-card-flip">
+          <img
+            class="receive-card-face receive-card-front"
+            [class.is-landscape-face]="c.frontIsLandscape"
+            [class.is-portrait-face]="!c.frontIsLandscape"
+            [src]="c.frontSrc"
+            alt="Voorkant van de kaart"
+          />
+          <img
+            class="receive-card-face receive-card-back is-portrait-face"
+            [src]="c.backSrc"
+            alt="Achterkant van de kaart met compliment"
+          />
+        </div>
+      </div>
+    }
+  </div>
+}

@@ -8,6 +8,8 @@ internal interface IComplimentsRepository
 
     Task<IReadOnlyList<Compliment>> GetAllAsync();
 
+    Task<IReadOnlyList<Compliment>> GetReceivedByRecipientIdAsync(string recipientId);
+
     Task UpsertAsync(string senderId, string senderName, ComplimentRequest compliment);
 
     Task HideAsync(string senderId);

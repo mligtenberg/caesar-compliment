@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Azure.Core;
 using Azure.Data.Tables;
 using Azure.Identity;
+using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,6 +25,19 @@ if (builder.Environment.IsDevelopment())
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+// Local dev has no Application Insights resource (and no connection string set for
+// one), so only wire it up when deployed. When enabled, this instruments ASP.NET Core
+// requests, outgoing HttpClient calls (Graph), Azure SDK calls (Table/Blob storage)
+// and ILogger logs automatically - no manual tracing/logging calls needed elsewhere.
+var appInsightsConnectionString = builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"];
+if (!string.IsNullOrEmpty(appInsightsConnectionString))
+{
+    builder.Services.AddOpenTelemetry().UseAzureMonitor(options =>
+    {
+        options.ConnectionString = appInsightsConnectionString;
+    });
+}
 
 // AddMicrosoftIdentityWebApi needs "Instance" alongside TenantId/ClientId, but
 // Instance lives under AzureAd (it's a fixed endpoint, not per-app-registration,
@@ -126,12 +139,14 @@ builder.Services.AddHttpClient<IUserLookupService, EntraUserLookupService>(clien
 builder.Services.AddSingleton<IComplimentsRepository, ComplimentsRepository>();
 builder.Services.AddSingleton<IRecipientsRepository, RecipientsRepository>();
 builder.Services.AddSingleton<IRolesRepository, RolesRepository>();
+builder.Services.AddSingleton<IAppStateRepository, AppStateRepository>();
 
 var app = builder.Build();
 
 await app.Services.GetRequiredService<IComplimentsRepository>().InitializeAsync();
 await app.Services.GetRequiredService<IRecipientsRepository>().InitializeAsync();
 await app.Services.GetRequiredService<IRolesRepository>().InitializeAsync();
+await app.Services.GetRequiredService<IAppStateRepository>().InitializeAsync();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -144,239 +159,20 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
 // Area 1: pages the signed-in user interacts with directly, secured by their Entra ID token.
 var userPages = app.MapGroup("/").RequireAuthorization();
 
-userPages.MapGet("/suggestions", async (
-    string? term,
-    ClaimsPrincipal user,
-    IRecipientsRepository recipients,
-    IComplimentsRepository compliments) =>
-{
-    var complimented = await compliments.GetComplimentedRecipientIdsAsync();
-    return Results.Ok(recipients.Search(term, user.Identity?.Name, complimented));
-})
-.WithName("GetSuggestions");
-
-userPages.MapGet("/suggestions/avatar/{id}", async (string id, IRecipientsRepository recipients, IAvatarService avatars, ILogger<Program> logger) =>
-{
-    var upn = recipients.GetUpnById(id);
-    if (upn is null) return Results.NotFound();
-
-    try
-    {
-        var photo = await avatars.GetAvatarAsync(upn);
-        return photo is null ? Results.NotFound() : Results.Bytes(photo.Value.Bytes, photo.Value.ContentType);
-    }
-    catch (GraphUnavailableException ex)
-    {
-        logger.LogError(ex, "Failed to fetch avatar for recipient {RecipientId} from Microsoft Graph.", id);
-        return Results.StatusCode(StatusCodes.Status502BadGateway);
-    }
-})
-.WithName("GetRecipientAvatar");
-
-userPages.MapPost("/compliments", async (ComplimentRequest compliment, ClaimsPrincipal user, IComplimentsRepository compliments) =>
-{
-    await compliments.UpsertAsync(user.GetObjectId(), user.GetDisplayName(), compliment);
-
-    return Results.NoContent();
-})
-.WithName("PostCompliment");
-
-userPages.MapGet("/compliments/mine", async (ClaimsPrincipal user, IComplimentsRepository compliments) =>
-{
-    var compliment = await compliments.GetBySenderIdAsync(user.GetObjectId());
-
-    return compliment is null ? Results.NotFound() : Results.Ok(compliment);
-})
-.WithName("GetMyCompliment");
-
-userPages.MapGet("/myrole", async (ClaimsPrincipal user, IRolesRepository roles) =>
-{
-    var role = await roles.GetRoleAsync(user.GetObjectId());
-
-    return Results.Ok(role ?? "user");
-})
-.WithName("GetMyRole");
-
-// Only admins may manage role assignments - callers must already have an "admin" row
-// in the Roles table themselves, checked on every request in these groups.
-async ValueTask<object?> RequireAdmin(Microsoft.AspNetCore.Http.EndpointFilterInvocationContext context, Microsoft.AspNetCore.Http.EndpointFilterDelegate next)
-{
-    var user = context.HttpContext.User;
-    var roles = context.HttpContext.RequestServices.GetRequiredService<IRolesRepository>();
-    var role = await roles.GetRoleAsync(user.GetObjectId());
-
-    return role == "admin" ? await next(context) : Results.Forbid();
-}
-
-var adminPages = userPages.MapGroup("/roles").AddEndpointFilter(RequireAdmin);
-
-adminPages.MapGet("/", async (ClaimsPrincipal _, IRolesRepository roles) =>
-    Results.Ok(await roles.GetAllAsync()))
-.WithName("GetAllRoles");
-
-adminPages.MapGet("/search", async (string query, IUserLookupService lookup, ILogger<Program> logger) =>
-{
-    if (string.IsNullOrWhiteSpace(query)) return Results.Ok(Array.Empty<GraphUser>());
-
-    try
-    {
-        return Results.Ok(await lookup.SearchAsync(query));
-    }
-    catch (GraphUnavailableException ex)
-    {
-        logger.LogError(ex, "Failed to search for user {Query} in Microsoft Graph.", query);
-        return Results.StatusCode(StatusCodes.Status502BadGateway);
-    }
-})
-.WithName("SearchUsers");
-
-adminPages.MapGet("/avatar/{objectId}", async (string objectId, IAvatarService avatars, ILogger<Program> logger) =>
-{
-    try
-    {
-        var photo = await avatars.GetAvatarAsync(objectId);
-        return photo is null ? Results.NotFound() : Results.Bytes(photo.Value.Bytes, photo.Value.ContentType);
-    }
-    catch (GraphUnavailableException ex)
-    {
-        logger.LogError(ex, "Failed to fetch avatar for {ObjectId} from Microsoft Graph.", objectId);
-        return Results.StatusCode(StatusCodes.Status502BadGateway);
-    }
-})
-.WithName("GetUserAvatar");
-
-adminPages.MapPost("/", async (ClaimsPrincipal _, RoleAssignment assignment, IRolesRepository roles) =>
-{
-    await roles.AssignRoleAsync(assignment.ObjectId, assignment.Role, assignment.DisplayName);
-
-    return Results.NoContent();
-})
-.WithName("AssignRole");
-
-adminPages.MapDelete("/{objectId}", async (ClaimsPrincipal user, string objectId, IRolesRepository roles) =>
-{
-    if (objectId == user.GetObjectId()) return Results.BadRequest("Admins cannot remove their own role assignment.");
-
-    await roles.RemoveRoleAsync(objectId);
-
-    return Results.NoContent();
-})
-.WithName("RemoveRole");
-
-var adminCompliments = userPages.MapGroup("/admin/compliments").AddEndpointFilter(RequireAdmin);
-
-adminCompliments.MapGet("/", async (IComplimentsRepository compliments) =>
-{
-    var all = await compliments.GetAllAsync();
-
-    var result = all.Select(c => new AdminCompliment(
-        c.SenderId,
-        c.SenderName,
-        c.RecipientId,
-        c.RecipientName,
-        c.Text,
-        c.HideFromDashboard));
-
-    return Results.Ok(result);
-})
-.WithName("GetAllCompliments");
-
-adminCompliments.MapPost("/{senderId}/hide", async (string senderId, IComplimentsRepository compliments) =>
-{
-    await compliments.HideAsync(senderId);
-
-    return Results.NoContent();
-})
-.WithName("HideCompliment");
-
-adminCompliments.MapDelete("/{senderId}", async (string senderId, IComplimentsRepository compliments) =>
-{
-    await compliments.DeleteAsync(senderId);
-
-    return Results.NoContent();
-})
-.WithName("DeleteCompliment");
-
-var adminSend = userPages.MapGroup("/admin/send").AddEndpointFilter(RequireAdmin);
-
-adminSend.MapGet("/recipients", async (string? term, IRecipientsRepository recipients, IComplimentsRepository compliments) =>
-{
-    var complimented = await compliments.GetComplimentedRecipientIdsAsync();
-    return Results.Ok(recipients.SearchForAdmin(term, complimented));
-})
-.WithName("SearchRecipientsForAdminSend");
-
-adminSend.MapPost("/", async (ComplimentRequest compliment, IComplimentsRepository compliments) =>
-{
-    // Admin-sent compliments aren't tied to a real Entra user, so RowKey (which is
-    // normally the sender's own object id and enforces "one compliment per sender")
-    // is instead a synthetic, always-unique id per send.
-    var senderId = $"adminsend-{DateTime.UtcNow:yyyyMMddHHmmssfff}";
-    await compliments.UpsertAsync(senderId, "Admin Send", compliment);
-
-    return Results.NoContent();
-})
-.WithName("SendAdminCompliment");
+userPages.MapSuggestionsEndpoints();
+userPages.MapComplimentsEndpoints();
+userPages.MapRolesEndpoints();
+userPages.MapAppStateEndpoints();
+userPages.MapAdminComplimentsEndpoints();
+userPages.MapAdminSendEndpoints();
 
 // Area 2: server-to-server access (e.g. the dashboard), secured by a shared API key
 // instead of a user sign-in.
 var external = app.MapGroup("/external").RequireAuthorization(ApiKeyAuthenticationDefaults.AuthenticationScheme);
 
-external.MapGet("/compliments", async (IComplimentsRepository compliments, IRecipientsRepository recipients) =>
-{
-    var all = await compliments.GetAllAsync();
-
-    // The dashboard reel currently only shows a first name, sourced from the
-    // recipients CSV rather than the sender-supplied full name stored on the
-    // compliment - falls back to splitting that name if the recipient isn't found
-    // (e.g. removed since). RecipientDisplayName carries the full stored name
-    // alongside it for future dashboard work that needs the whole name.
-    var result = all.Select(c => new DashboardCompliment(
-        c.SenderId,
-        c.RecipientId,
-        recipients.GetFirstNameById(c.RecipientId) ?? c.RecipientName.Split(' ')[0],
-        c.RecipientName,
-        c.CardName,
-        c.Text,
-        c.HideFromDashboard));
-
-    return Results.Ok(result);
-})
-.WithName("GetAll");
+external.MapExternalEndpoints();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
-
-record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl);
-
-record ComplimentRequest(string RecipientId, string RecipientName, string CardName, string Text, bool HideFromDashboard = false);
-
-record AdminCompliment(string SenderId, string SenderName, string RecipientId, string RecipientName, string Text, bool HideFromDashboard);
-
-record DashboardCompliment(string SenderId, string RecipientId, string RecipientName, string RecipientDisplayName, string CardName, string Text, bool HideFromDashboard);

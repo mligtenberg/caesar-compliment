@@ -9,4 +9,8 @@ internal interface IRecipientsRepository
     string? GetUpnById(string id);
 
     string? GetFirstNameById(string id);
+
+    string? GetIdByViewerEmail(string? viewerEmail);
 }
+
+record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl);

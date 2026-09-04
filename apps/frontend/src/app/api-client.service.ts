@@ -25,6 +25,15 @@ export interface GraphUser {
   userPrincipalName: string | null;
 }
 
+export type AppState = 'Open' | 'Locked' | 'Receive';
+
+export interface ReceivedCompliment {
+  senderName: string;
+  recipientName: string;
+  cardName: string;
+  text: string;
+}
+
 export interface AdminCompliment {
   senderId: string;
   senderName: string;
@@ -119,5 +128,25 @@ export class ApiClientService {
 
   async sendAdminCompliment(compliment: ComplimentRequest): Promise<void> {
     await firstValueFrom(this.http.post(`${environment.api.baseUrl}/admin/send`, compliment));
+  }
+
+  getAppState(): Promise<AppState> {
+    return firstValueFrom(
+      this.http.get<AppState>(`${environment.api.baseUrl}/appstate`).pipe(catchError(() => of('Open' as AppState)))
+    );
+  }
+
+  setAppState(state: AppState): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(`${environment.api.baseUrl}/admin/appstate`, { state })
+    );
+  }
+
+  getReceivedCompliments(): Promise<ReceivedCompliment[]> {
+    return firstValueFrom(
+      this.http.get<ReceivedCompliment[]>(`${environment.api.baseUrl}/compliments/received`).pipe(
+        catchError(() => of<ReceivedCompliment[]>([]))
+      )
+    );
   }
 }

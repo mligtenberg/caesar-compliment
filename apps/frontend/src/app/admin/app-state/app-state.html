@@ -1,0 +1,24 @@
+<h1>Status van de actie</h1>
+
+@if (error()) {
+  <p class="error">{{ error() }}</p>
+}
+
+@if (loading()) {
+  <p>Laden…</p>
+} @else {
+  <div class="state-options">
+    @for (state of states; track state.value) {
+      <button
+        type="button"
+        class="state-option"
+        [class.active]="current() === state.value"
+        [disabled]="saving()"
+        (click)="setState(state.value)"
+      >
+        <span class="state-label">{{ state.label }}</span>
+        <span class="state-description">{{ state.description }}</span>
+      </button>
+    }
+  </div>
+}

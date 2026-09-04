@@ -62,6 +62,28 @@ internal class ComplimentsRepository : IComplimentsRepository
         return compliments;
     }
 
+    public async Task<IReadOnlyList<Compliment>> GetReceivedByRecipientIdAsync(string recipientId)
+    {
+        var compliments = new List<Compliment>();
+
+        await foreach (var entity in _table.QueryAsync<TableEntity>(
+            filter: $"PartitionKey eq '{CurrentPartitionKey()}'"))
+        {
+            if (ReadRecipientId(entity) != recipientId) continue;
+
+            compliments.Add(new Compliment(
+                entity.RowKey,
+                entity.GetString("SenderName") ?? entity.RowKey,
+                ReadRecipientId(entity),
+                entity.GetString("RecipientName"),
+                entity.GetString("CardName"),
+                entity.GetString("Text"),
+                entity.GetBoolean("HideFromDashboard") ?? false));
+        }
+
+        return compliments;
+    }
+
     // RecipientIds used to be Entra object GUIDs and are now numeric MijnCaesar ids, but
     // some entities written before that change may still have been stored with a
     // numeric EDM type instead of a string - read leniently instead of assuming Edm.String.
