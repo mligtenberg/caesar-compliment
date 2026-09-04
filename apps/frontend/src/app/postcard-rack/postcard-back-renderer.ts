@@ -34,7 +34,7 @@ export function renderFinishedPostcardBack(text: string, recipientName: string):
 
   ctx.save();
   ctx.translate(CANVAS_W / 2, CANVAS_H / 2);
-  ctx.rotate(-Math.PI / 2);
+  ctx.rotate(Math.PI / 2);
   ctx.translate(-CANVAS_H / 2, -CANVAS_W / 2);
   const lw = CANVAS_H, lh = CANVAS_W; // logical landscape canvas size once rotated
 
@@ -101,15 +101,10 @@ export function renderFinishedPostcardBack(text: string, recipientName: string):
   lines.forEach((line, i) => ctx.fillText(line, TEXT_X, TEXT_Y + i * TEXT_LINE_H));
   ctx.restore();
 
-  // The canvas above is baked portrait-first (matching the physical card mesh),
-  // so undo that the same way landscapeBackDataUrl() does: rotate +90° into a
-  // freshly-sized landscape canvas before reading pixels back out.
-  const out = document.createElement('canvas');
-  out.width = CANVAS_H;
-  out.height = CANVAS_W;
-  const octx = out.getContext('2d')!;
-  octx.translate(out.width / 2, out.height / 2);
-  octx.rotate(Math.PI / 2);
-  octx.drawImage(backCanvas, -CANVAS_W / 2, -CANVAS_H / 2);
-  return out.toDataURL('image/png');
+  // Portrait-baked (matching rack.js's renderBack(), not its
+  // landscapeBackDataUrl() undo step) — the physical card mesh stays
+  // portrait-shaped, and it's the CSS roll (rotateZ 90deg alongside the
+  // rotateY flip in receive-overlay.css) that turns this the right way up
+  // as landscape on screen.
+  return backCanvas.toDataURL('image/png');
 }
