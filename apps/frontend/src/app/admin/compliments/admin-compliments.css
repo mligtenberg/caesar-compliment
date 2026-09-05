@@ -87,7 +87,7 @@ h1 {
   cursor: pointer;
 }
 
-.compliments-table tbody tr:hover {
+.compliments-table tbody tr:hover:not(:has(.actions:hover)) {
   background: #f4f7fb;
 }
 
@@ -122,9 +122,18 @@ h1 {
   cursor: default;
 }
 
+.mail-btn:hover:not(:disabled),
+.hide-btn:hover:not(:disabled) {
+  background: #f4f7fb;
+}
+
 .delete-btn {
   color: #a43d41;
   border: 1px solid #dde5ef;
+}
+
+.delete-btn:hover {
+  background: #fbeeee;
 }
 
 .modal-actions {

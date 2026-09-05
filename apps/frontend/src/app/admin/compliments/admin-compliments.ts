@@ -41,7 +41,13 @@ export class AdminCompliments implements OnInit {
     this.loading.set(true);
     this.apiClient
       .getAllCompliments()
-      .then((compliments) => this.compliments.set(compliments))
+      .then((compliments) => {
+        this.compliments.set(compliments);
+        const selected = this.selected();
+        if (selected) {
+          this.selected.set(compliments.find((c) => c.senderId === selected.senderId) ?? null);
+        }
+      })
       .catch(() => this.error.set('Kon complimenten niet laden.'))
       .finally(() => this.loading.set(false));
   }
