@@ -50,6 +50,16 @@
           <td [title]="compliment.senderName">{{ compliment.senderName }}</td>
           <td class="compliment-text" [title]="compliment.text">{{ compliment.text }}</td>
           <td class="actions">
+            @if (canMail()) {
+              <button
+                type="button"
+                class="mail-btn"
+                [disabled]="compliment.mailed || mailing() === compliment.senderId"
+                (click)="$event.stopPropagation(); mail(compliment)"
+              >
+                {{ compliment.mailed ? 'Gemailt' : 'Mailen' }}
+              </button>
+            }
             <button
               type="button"
               class="hide-btn"
@@ -93,6 +103,16 @@
         <dd class="compliment-full">{{ compliment.text }}</dd>
       </dl>
       <div class="modal-actions">
+        @if (canMail()) {
+          <button
+            type="button"
+            class="mail-btn"
+            [disabled]="compliment.mailed || mailing() === compliment.senderId"
+            (click)="mail(compliment)"
+          >
+            {{ compliment.mailed ? 'Gemailt' : 'Mailen' }}
+          </button>
+        }
         <button
           type="button"
           class="hide-btn"

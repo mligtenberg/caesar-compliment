@@ -18,6 +18,8 @@ export class AdminCompliments implements OnInit {
   protected readonly search = signal('');
   protected readonly adding = signal(false);
   protected readonly pendingDelete = signal<AdminCompliment | null>(null);
+  protected readonly canMail = signal(false);
+  protected readonly mailing = signal<string | null>(null);
 
   protected readonly filteredCompliments = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -32,6 +34,7 @@ export class AdminCompliments implements OnInit {
 
   ngOnInit(): void {
     this.reload();
+    this.apiClient.getAppState().then((state) => this.canMail.set(state === 'Receive'));
   }
 
   private reload(): void {
@@ -71,6 +74,19 @@ export class AdminCompliments implements OnInit {
       this.reload();
     } catch {
       this.error.set('Kon dit compliment niet verbergen.');
+    }
+  }
+
+  protected async mail(compliment: AdminCompliment): Promise<void> {
+    this.error.set(null);
+    this.mailing.set(compliment.senderId);
+    try {
+      await this.apiClient.mailCompliment(compliment.senderId);
+      this.reload();
+    } catch {
+      this.error.set('Kon dit compliment niet mailen.');
+    } finally {
+      this.mailing.set(null);
     }
   }
 

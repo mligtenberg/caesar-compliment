@@ -48,6 +48,7 @@ export interface AdminCompliment {
   recipientName: string;
   text: string;
   hideFromDashboard: boolean;
+  mailed: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -123,6 +124,15 @@ export class ApiClientService {
     return firstValueFrom(
       this.http.delete<void>(
         `${environment.api.baseUrl}/admin/compliments/${encodeURIComponent(senderId)}`
+      )
+    );
+  }
+
+  mailCompliment(senderId: string): Promise<void> {
+    return firstValueFrom(
+      this.http.post<void>(
+        `${environment.api.baseUrl}/admin/compliments/${encodeURIComponent(senderId)}/mail`,
+        {}
       )
     );
   }

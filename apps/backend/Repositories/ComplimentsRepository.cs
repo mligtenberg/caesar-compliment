@@ -40,6 +40,49 @@ internal class ComplimentsRepository : IComplimentsRepository
         return recipientIds;
     }
 
+    public async Task<IReadOnlySet<string>> GetUnmailedRecipientIdsAsync()
+    {
+        var recipientIds = new HashSet<string>();
+
+        await foreach (var entity in _table.QueryAsync<TableEntity>(
+            filter: $"PartitionKey eq '{CurrentPartitionKey()}'",
+            select: ["RecipientId", "Mailed"]))
+        {
+            if (entity.GetBoolean("Mailed") ?? false) continue;
+
+            recipientIds.Add(ReadRecipientId(entity));
+        }
+
+        return recipientIds;
+    }
+
+    public async Task<bool> IsMailedAsync(string senderId)
+    {
+        var response = await _table.GetEntityIfExistsAsync<TableEntity>(
+            CurrentPartitionKey(), senderId, select: ["Mailed"]);
+
+        if (!response.HasValue) return false;
+
+        return response.Value!.GetBoolean("Mailed") ?? false;
+    }
+
+    public async Task MarkMailedAsync(string recipientId)
+    {
+        await foreach (var entity in _table.QueryAsync<TableEntity>(
+            filter: $"PartitionKey eq '{CurrentPartitionKey()}'",
+            select: ["RowKey", "RecipientId"]))
+        {
+            if (ReadRecipientId(entity) != recipientId) continue;
+
+            var update = new TableEntity(CurrentPartitionKey(), entity.RowKey)
+            {
+                { "Mailed", true },
+            };
+
+            await _table.UpdateEntityAsync(update, ETag.All, TableUpdateMode.Merge);
+        }
+    }
+
     public async Task<IReadOnlyList<Compliment>> GetAllAsync()
     {
         var compliments = new List<Compliment>();
@@ -56,7 +99,8 @@ internal class ComplimentsRepository : IComplimentsRepository
                 entity.GetString("RecipientName"),
                 entity.GetString("CardName"),
                 entity.GetString("Text"),
-                entity.GetBoolean("HideFromDashboard") ?? false));
+                entity.GetBoolean("HideFromDashboard") ?? false,
+                entity.GetBoolean("Mailed") ?? false));
         }
 
         return compliments;
@@ -78,7 +122,8 @@ internal class ComplimentsRepository : IComplimentsRepository
                 entity.GetString("RecipientName"),
                 entity.GetString("CardName"),
                 entity.GetString("Text"),
-                entity.GetBoolean("HideFromDashboard") ?? false));
+                entity.GetBoolean("HideFromDashboard") ?? false,
+                entity.GetBoolean("Mailed") ?? false));
         }
 
         return compliments;

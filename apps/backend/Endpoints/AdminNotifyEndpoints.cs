@@ -19,7 +19,7 @@ internal static class AdminNotifyEndpoints
                 return Results.BadRequest("Mails can only be sent while the app state is Receive.");
             }
 
-            var recipientIds = await compliments.GetComplimentedRecipientIdsAsync();
+            var recipientIds = await compliments.GetUnmailedRecipientIdsAsync();
 
             var stopwatch = System.Diagnostics.Stopwatch.StartNew();
             var sent = 0;
@@ -41,6 +41,7 @@ internal static class AdminNotifyEndpoints
                 try
                 {
                     await mail.SendAsync(address, ReceivedComplimentMail.Subject, template.BuildBody(firstName), template.InlineImages());
+                    await compliments.MarkMailedAsync(recipientId);
                     sent++;
                 }
                 catch (Exception ex) when (ex is GraphUnavailableException or InvalidOperationException)

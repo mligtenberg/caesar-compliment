@@ -6,6 +6,12 @@ internal interface IComplimentsRepository
 
     Task<IReadOnlySet<string>> GetComplimentedRecipientIdsAsync();
 
+    Task<IReadOnlySet<string>> GetUnmailedRecipientIdsAsync();
+
+    Task<bool> IsMailedAsync(string senderId);
+
+    Task MarkMailedAsync(string recipientId);
+
     Task<IReadOnlyList<Compliment>> GetAllAsync();
 
     Task<IReadOnlyList<Compliment>> GetReceivedByRecipientIdAsync(string recipientId);
@@ -17,4 +23,4 @@ internal interface IComplimentsRepository
     Task DeleteAsync(string senderId);
 }
 
-record Compliment(string SenderId, string SenderName, string RecipientId, string RecipientName, string CardName, string Text, bool HideFromDashboard);
+record Compliment(string SenderId, string SenderName, string RecipientId, string RecipientName, string CardName, string Text, bool HideFromDashboard, bool Mailed);

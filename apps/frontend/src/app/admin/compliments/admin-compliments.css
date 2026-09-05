@@ -97,6 +97,7 @@ h1 {
   gap: 6px;
 }
 
+.mail-btn,
 .hide-btn,
 .delete-btn {
   border: none;
@@ -108,11 +109,13 @@ h1 {
   cursor: pointer;
 }
 
+.mail-btn,
 .hide-btn {
   color: #224f82;
   border: 1px solid #dde5ef;
 }
 
+.mail-btn:disabled,
 .hide-btn:disabled {
   color: #5a7391;
   opacity: 0.6;

@@ -11,7 +11,7 @@ internal class GraphMailService(HttpClient httpClient, TokenCredential credentia
 
     public async Task SendAsync(string toAddress, string subject, string htmlBody, IReadOnlyList<InlineImage> inlineImages)
     {
-        var sender = configuration["Mail:Sender"];
+         var sender = configuration["Mail:Sender"];
         if (string.IsNullOrWhiteSpace(sender))
         {
             throw new InvalidOperationException("No Mail:Sender mailbox is configured to send compliment mails from.");
