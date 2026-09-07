@@ -36,6 +36,11 @@
           {
             "glob": "**/*",
             "input": "apps/dashboard/public"
+          },
+          {
+            "glob": "**/*",
+            "input": "libs/shared-assets/cards",
+            "output": "assets/cards"
           }
         ],
         "styles": ["apps/dashboard/src/styles.css"]

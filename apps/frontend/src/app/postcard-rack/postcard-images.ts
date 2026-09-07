@@ -5,8 +5,9 @@ export interface PostcardImage {
   orientation?: PostcardOrientation;
 }
 
-// Card front artwork, see apps/frontend/public/assets/cards/designs. Edit
-// this list to change which cards appear on the rack. A plain string
+// Card front artwork, see libs/shared-assets/cards/designs (shared with the
+// dashboard, see apps/dashboard/src/app/compliments-reel/postcard-images.ts).
+// Edit this list to change which cards appear on the rack. A plain string
 // defaults to portrait orientation.
 export const POSTCARD_IMAGES: (string | PostcardImage)[] = Array.from(
   { length: 7 },

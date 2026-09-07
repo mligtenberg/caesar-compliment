@@ -6,8 +6,10 @@ export interface PostcardImage {
 }
 
 // Mirrors apps/frontend/src/app/postcard-rack/postcard-images.ts - the
-// dashboard has no dependency on the frontend app, so the front artwork
-// list (and which entries are landscape) is duplicated here.
+// dashboard has no dependency on the frontend app, so this list (and which
+// entries are landscape) is duplicated here. The artwork files themselves
+// are shared, not duplicated: both apps' build copies them in from
+// libs/shared-assets/cards/designs (see each app's project.json).
 export const POSTCARD_IMAGES: (string | PostcardImage)[] = Array.from(
   { length: 7 },
   (_, i) => `/assets/cards/designs/${String(i + 1)}.svg`,

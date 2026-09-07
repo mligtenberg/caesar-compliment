@@ -328,16 +328,44 @@ function cardNameFromUrl(url) {
   return file.replace(/\.[^.]+$/, '');
 }
 
-const texLoader = new T.TextureLoader();
-function loadTexture(url) {
-  return new Promise((resolve) => {
-    texLoader.load(
-      url,
-      (tex) => { tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = stage._renderer.capabilities.getMaxAnisotropy(); resolve(tex); },
-      undefined,
-      () => resolve(null),
-    );
+// Drawn onto a canvas ourselves (rather than handed straight to
+// THREE.TextureLoader) because an SVG <img> uploaded directly as a WebGL
+// texture rasterizes at its tiny intrinsic pixel size (its width/height
+// attributes, e.g. ~400x560) — drawImage instead rasterizes the vector
+// content at the destination size we choose, so the card front stays sharp.
+function loadImageAsCanvas(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const targetH = 2000;
+      const targetW = Math.round((targetH * img.naturalWidth) / img.naturalHeight) || targetH;
+      const canvas = document.createElement('canvas');
+      canvas.width = targetW;
+      canvas.height = targetH;
+      canvas.getContext('2d').drawImage(img, 0, 0, targetW, targetH);
+      resolve(canvas);
+    };
+    img.onerror = reject;
+    img.src = url;
   });
+}
+
+// Card designs ship as both .svg (crisp, used elsewhere as plain <img>s) and a
+// prerendered .png alongside it. The rack prefers the PNG: it's a big, cheap
+// win here specifically because rasterizing these particular SVGs (dense
+// vector paths plus an embedded photo layer) onto a canvas is slow, and the
+// rack loads every design's texture up front. Falls back to rasterizing the
+// SVG itself if no PNG counterpart exists for a design.
+function loadTexture(url) {
+  const pngUrl = url.replace(/\.svg$/i, '.png');
+  return (pngUrl !== url ? loadImageAsCanvas(pngUrl).catch(() => loadImageAsCanvas(url)) : loadImageAsCanvas(url))
+    .then((canvas) => {
+      const tex = new T.CanvasTexture(canvas);
+      tex.colorSpace = T.SRGBColorSpace;
+      tex.anisotropy = stage._renderer.capabilities.getMaxAnisotropy();
+      return tex;
+    })
+    .catch(() => null);
 }
 
 function placeholderTexture(i, isLandscape) {
