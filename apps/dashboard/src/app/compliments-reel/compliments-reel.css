@@ -163,21 +163,34 @@
   background: #fff;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
   transform-origin: bottom right;
-  animation: qr-card-pop-in 900ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  animation: qr-card-pop-in 1100ms ease-out both;
 }
 
-/* Springs in from nothing with a slight overshoot (the cubic-bezier above
-   handles the bounce past 100%), plus a small rotational wobble and a
-   momentary glow so it reads as an attention-grabbing arrival, not a resize. */
+/* Springs in from nothing and overshoots past full size twice (a settling
+   wobble) before coming to rest, with a momentary glow at the first
+   overshoot, so the arrival reads as a deliberate bounce rather than a
+   snap - the stages are spread across explicit percentages instead of
+   relying on an easing curve, so the bounce stays visible even though the
+   whole thing resolves in just over a second. */
 @keyframes qr-card-pop-in {
   0% {
-    transform: scale(0) rotate(-8deg);
+    transform: scale(0) rotate(-12deg);
     opacity: 0;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0);
   }
-  60% {
+  15% {
     opacity: 1;
-    box-shadow: 0 12px 48px rgba(255, 255, 255, 0.55);
+  }
+  55% {
+    transform: scale(1.12) rotate(4deg);
+    box-shadow: 0 16px 50px rgba(255, 255, 255, 0.6);
+  }
+  75% {
+    transform: scale(0.95) rotate(-2deg);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+  }
+  90% {
+    transform: scale(1.03) rotate(1deg);
   }
   100% {
     transform: scale(1) rotate(0deg);
