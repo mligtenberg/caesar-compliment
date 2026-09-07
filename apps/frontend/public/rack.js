@@ -321,7 +321,7 @@ function imageEntry(i) {
 }
 
 // A card's "name" is its design filename without extension, e.g. "7" for
-// /assets/cards/designs/7.png — the only stable identifier we have per design.
+// /assets/cards/designs/7.svg — the only stable identifier we have per design.
 function cardNameFromUrl(url) {
   if (!url) return null;
   const file = url.split('/').pop() || '';

@@ -122,7 +122,7 @@ export class ComplimentsReel implements OnChanges, OnDestroy {
     const compliment = this.queue[this.queueIndex++];
     this.cards.set([{
       id: this.nextId++,
-      frontSrc: `/assets/cards/designs/${compliment.cardName}.png`,
+      frontSrc: `/assets/cards/designs/${compliment.cardName}.svg`,
       frontIsLandscape: postcardFrontIsLandscape(compliment.cardName),
       backSrc: renderFinishedPostcardBack(compliment.text, compliment.recipientName),
       recipientName: compliment.recipientName,

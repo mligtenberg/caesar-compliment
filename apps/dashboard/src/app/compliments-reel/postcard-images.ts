@@ -9,14 +9,14 @@ export interface PostcardImage {
 // dashboard has no dependency on the frontend app, so the front artwork
 // list (and which entries are landscape) is duplicated here.
 export const POSTCARD_IMAGES: (string | PostcardImage)[] = Array.from(
-  { length: 17 },
-  (_, i) => `/assets/cards/designs/${String(i + 1)}.png`,
+  { length: 7 },
+  (_, i) => `/assets/cards/designs/${String(i + 1)}.svg`,
 );
 
 export function postcardFrontIsLandscape(cardName: string): boolean {
   const entry = POSTCARD_IMAGES.find((image) => {
     const url = typeof image === 'string' ? image : image.url;
-    return url.endsWith(`/${cardName}.png`);
+    return url.endsWith(`/${cardName}.svg`);
   });
   if (!entry || typeof entry === 'string') return false;
   return entry.orientation === 'landscape';

@@ -41,7 +41,7 @@ function imageUrl(image: string | { url: string }): string {
 }
 
 function cardNameFromUrl(url: string): string {
-  return url.slice(url.lastIndexOf('/') + 1).replace('.png', '');
+  return url.slice(url.lastIndexOf('/') + 1).replace('.svg', '');
 }
 
 @Component({
