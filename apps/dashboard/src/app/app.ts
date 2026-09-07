@@ -28,8 +28,6 @@ export class App implements OnDestroy {
   private appStateTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor() {
-    precachePostcardImages();
-
     if (!this.apiKey.value) {
       this.error.set('Missing ?api_key= in the URL.');
       return;
@@ -54,7 +52,8 @@ export class App implements OnDestroy {
     this.error.set(null);
 
     try {
-      this.compliments.set((await this.apiClient.getAll()).filter((c) => !c.hideFromDashboard));
+      const [compliments] = await Promise.all([this.apiClient.getAll(), precachePostcardImages()]);
+      this.compliments.set(compliments.filter((c) => !c.hideFromDashboard));
     } catch {
       this.error.set('Failed to load compliments. Check that the API key is valid.');
     } finally {

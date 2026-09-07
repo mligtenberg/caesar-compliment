@@ -25,7 +25,7 @@
   /* transform-only animation, so each card stays on its own compositor layer
      and the whole layer costs no layout or paint work per frame. */
   will-change: transform;
-  animation: falling-card-drop var(--dur) linear var(--delay) infinite;
+  animation: falling-card-drop var(--dur) linear var(--delay) infinite backwards;
 }
 
 /* Backs (and any landscape front artwork) are drawn landscape already - see
@@ -36,10 +36,12 @@
   aspect-ratio: 138 / 96;
 }
 
-/* Starts and ends well outside the viewport so cards never pop in or out. */
+/* Starts and ends just outside the viewport so cards never pop in or out,
+   but close enough that a freshly-delayed card reaches view quickly instead
+   of spending its first seconds crossing empty space above the screen. */
 @keyframes falling-card-drop {
   from {
-    transform: translate3d(0, -40vh, 0) rotate(var(--spin-from));
+    transform: translate3d(0, -20vh, 0) rotate(var(--spin-from));
   }
   to {
     transform: translate3d(var(--drift), 140vh, 0) rotate(var(--spin-to));

@@ -1,7 +1,9 @@
 @if (error()) {
   <p class="error">{{ error() }}</p>
 } @else if (loading()) {
-  <p>Loading…</p>
+  <div class="loading-screen">
+    <div class="loading-spinner"></div>
+  </div>
 } @else {
   <app-compliments-reel [compliments]="compliments()" [appState]="appState()" />
 }

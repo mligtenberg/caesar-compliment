@@ -25,9 +25,17 @@ export function postcardFrontIsLandscape(cardName: string): boolean {
 }
 
 // Warms the browser's HTTP cache for every card front so the reel's flying
-// cards never stall on a network fetch mid-animation.
-export function precachePostcardImages(): void {
-  for (const image of POSTCARD_IMAGES) {
-    new Image().src = typeof image === 'string' ? image : image.url;
-  }
+// cards never stall on a network fetch mid-animation. Resolves once every
+// image has loaded (or failed) so callers can wait out the warm-up.
+export function precachePostcardImages(): Promise<void> {
+  const loads = POSTCARD_IMAGES.map((image) => {
+    const url = typeof image === 'string' ? image : image.url;
+    return new Promise<void>((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve();
+      img.onerror = () => resolve();
+      img.src = url;
+    });
+  });
+  return Promise.all(loads).then(() => undefined);
 }
