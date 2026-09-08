@@ -78,7 +78,7 @@ module staticWebApp 'modules/static-web-app.bicep' = {
     location: staticWebAppLocation
     skuName: staticWebAppSku
     tags: tags
-    //customDomainName: staticWebAppCustomDomain
+    customDomainName: 'complimentje.caesar.nl'
   }
 }
 
@@ -101,8 +101,8 @@ module webApp 'modules/web-app.bicep' = {
     appInsightsConnectionString: appInsights.outputs.connectionString
     corsAllowedOrigins: concat(
       [
-        'https://${staticWebApp.outputs.defaultHostName}'
-        'https://${dashboardStaticWebApp.outputs.defaultHostName}'
+        ...map(staticWebApp.outputs.allDomainNames, adn => 'https://${adn}')
+        ...map(dashboardStaticWebApp.outputs.allDomainNames, adn => 'https://${adn}')
       ],
       additionalCorsAllowedOrigins
     )

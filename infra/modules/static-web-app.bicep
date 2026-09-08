@@ -37,3 +37,7 @@ resource customDomain 'Microsoft.Web/staticSites/customDomains@2023-12-01' = if 
 
 output name string = staticWebApp.name
 output defaultHostName string = staticWebApp.properties.defaultHostname
+output allDomainNames string[] = [
+  staticWebApp.properties.defaultHostname
+  ...(!empty(customDomainName) ? [customDomain!.properties.domainName] : [])
+]

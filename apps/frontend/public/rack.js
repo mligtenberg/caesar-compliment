@@ -484,6 +484,8 @@ const navCamPos = homeCamPos.clone();
 
 let selectedTier = null;
 let pulseTier = null, pulseStart = 0;
+const chooseBtn = document.getElementById('choose-card-btn');
+const selectBtn = document.getElementById('select-card-btn');
 
 function setButtonsForTier(tierIndex) {
   document.querySelectorAll('.tier-row').forEach((row) => {
@@ -491,6 +493,7 @@ function setButtonsForTier(tierIndex) {
   });
   const panel = document.querySelector('.tier-controls');
   if (panel) panel.style.visibility = tierIndex === null ? 'hidden' : 'visible';
+  selectBtn.style.display = tierIndex === null ? 'none' : 'block';
 }
 
 function focusOnTier(tierIndex) {
@@ -543,6 +546,7 @@ function liftCard(cardMesh) {
   cardShowsBack = false;
   const panel = document.querySelector('.tier-controls');
   if (panel) panel.style.visibility = 'hidden';
+  selectBtn.style.display = 'none';
   chooseBtn.style.display = 'block';
 }
 
@@ -559,7 +563,6 @@ function returnCard() {
   cardShowsBack = false;
 }
 
-const chooseBtn = document.getElementById('choose-card-btn');
 const complimentPanel = document.getElementById('compliment-panel');
 const complimentText = document.getElementById('compliment-text');
 const complimentSubmit = document.getElementById('compliment-submit');
@@ -786,6 +789,24 @@ function updateComplimentPanelRect() {
   complimentText.style.paddingRight = Math.max(0, width - TEXT_X * scale - maxTextWidth * scale) + 'px';
   complimentText.style.paddingBottom = '0';
 }
+
+// Each tier starts at its own rotation offset (so pockets across tiers don't
+// all line up), so the "front" pocket isn't reliably centered on-screen — a
+// ray through the middle of the screen can pass through the gap between two
+// cards instead of hitting one. The card nearest the camera is always the
+// one currently facing the viewer, ring stagger or not, so pick by distance.
+const selectFrontCardWorldPos = new T.Vector3();
+selectBtn.addEventListener('click', () => {
+  if (selectedTier === null || liftedCard) return;
+  let front = null, bestDist = Infinity;
+  tierGroups[selectedTier].traverse((o) => {
+    if (!o.userData.isCard) return;
+    o.getWorldPosition(selectFrontCardWorldPos);
+    const d = selectFrontCardWorldPos.distanceToSquared(camera.position);
+    if (d < bestDist) { bestDist = d; front = o; }
+  });
+  if (front) { liftCard(front); wake(); }
+});
 
 stage._renderer.domElement.addEventListener('click', (ev) => {
   if (suppressNextClick) { suppressNextClick = false; return; }
