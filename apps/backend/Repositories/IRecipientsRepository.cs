@@ -2,7 +2,7 @@ internal interface IRecipientsRepository
 {
     Task InitializeAsync();
 
-    IReadOnlyList<Recipient> Search(string? term, string? viewerEmail, IReadOnlySet<string> excludedRecipientIds);
+    IReadOnlyList<Recipient> Search(string? term, string? viewerEmail, IReadOnlySet<string> complimentedRecipientIds);
 
     IReadOnlyList<Recipient> SearchForAdmin(string? term, IReadOnlySet<string> excludedRecipientIds);
 
@@ -15,4 +15,4 @@ internal interface IRecipientsRepository
     string? GetIdByViewerEmail(string? viewerEmail);
 }
 
-record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl);
+record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl, bool HasCompliment = false);

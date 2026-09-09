@@ -75,7 +75,7 @@ internal class RecipientsRepository : IRecipientsRepository
         return _recipients.FirstOrDefault(r => string.Equals(r.Username, localPart, StringComparison.OrdinalIgnoreCase))?.Id;
     }
 
-    public IReadOnlyList<Recipient> Search(string? term, string? viewerEmail, IReadOnlySet<string> excludedRecipientIds)
+    public IReadOnlyList<Recipient> Search(string? term, string? viewerEmail, IReadOnlySet<string> complimentedRecipientIds)
     {
         // The signed-in account's domain doesn't reliably match the CSV's - people move
         // between the group's companies (e.g. caesar.nl vs garansys.nl) and keep signing
@@ -86,18 +86,20 @@ internal class RecipientsRepository : IRecipientsRepository
         var trimmed = term?.Trim() ?? "";
         var matches = _recipients.Where(r =>
             !string.Equals(r.Username, viewerLocalPart, StringComparison.OrdinalIgnoreCase) &&
-            !excludedRecipientIds.Contains(r.Id) &&
             (trimmed.Length == 0 || r.Name.Contains(trimmed, StringComparison.OrdinalIgnoreCase)));
 
         var viewer = viewerLocalPart is null
             ? null
             : _recipients.FirstOrDefault(r => string.Equals(r.Username, viewerLocalPart, StringComparison.OrdinalIgnoreCase));
 
+        // People who already have a compliment still show up, but sorted below everyone
+        // else so the search stays focused on colleagues who haven't been picked yet.
         return matches
-            .OrderBy(r => RelevanceTier(r, viewer))
+            .OrderBy(r => complimentedRecipientIds.Contains(r.Id) ? 1 : 0)
+            .ThenBy(r => RelevanceTier(r, viewer))
             .ThenBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
             .Take(5)
-            .Select(r => new Recipient(r.Id, r.Name, r.JobTitle, $"/suggestions/avatar/{r.Id}"))
+            .Select(r => new Recipient(r.Id, r.Name, r.JobTitle, $"/suggestions/avatar/{r.Id}", complimentedRecipientIds.Contains(r.Id)))
             .ToArray();
     }
 

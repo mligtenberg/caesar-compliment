@@ -64,6 +64,12 @@ h1 {
 }
 .suggestion:hover { background: #e7edf5; }
 .suggestion:active { transform: scale(0.99); }
+.suggestion--complimented {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.suggestion--complimented:hover { background: #fff; }
+.suggestion--complimented:active { transform: none; }
 .avatar {
   flex: none;
   width: 40px;

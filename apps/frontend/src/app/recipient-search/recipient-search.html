@@ -11,7 +11,14 @@
   <ul class="suggestions">
     @for (recipient of suggestions(); track recipient.id) {
       <li>
-        <button type="button" class="suggestion" (click)="selectRecipient(recipient)">
+        <button
+          type="button"
+          class="suggestion"
+          [class.suggestion--complimented]="recipient.hasCompliment"
+          [disabled]="recipient.hasCompliment"
+          [title]="recipient.hasCompliment ? 'Deze persoon heeft al een complimentje, laten we er iedereen 1 geven' : ''"
+          (click)="selectRecipient(recipient)"
+        >
           @if (avatarUrls()[recipient.id]) {
             <img class="avatar" [src]="avatarUrls()[recipient.id]" alt="" />
           } @else {

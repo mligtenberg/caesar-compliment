@@ -3,4 +3,5 @@ export interface Recipient {
   name: string;
   jobTitle: string;
   avatarUrl: string | null;
+  hasCompliment: boolean;
 }
