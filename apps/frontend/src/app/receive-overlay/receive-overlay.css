@@ -1,8 +1,9 @@
 :host {
   display: block;
-  /* Same fixed portrait card frame as the dashboard reel - "landscape" fronts
-     are achieved by rolling the whole frame around Z, not by resizing it. */
-  --card-h: min(60vh, 90vw * 138 / 96);
+  /* Card frame sized off viewport height but clamped so that when rolled 90deg
+     to landscape on screen, it never exceeds the screen width (capped at 90vw).
+     The width-to-height ratio stays strictly fixed at 96:138. */
+  --card-h: clamp(200px, 60vh, 90vw);
   --card-w: calc(var(--card-h) * 96 / 138);
 }
 
