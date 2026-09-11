@@ -308,24 +308,29 @@ rack.add(base, collar, pole, knob);
 
 // ---- postcard imagery: drop real photo URLs in here — the rack cycles through
 // however many you provide, repeating the list to fill every pocket. Each entry can be a
-// plain URL (defaults to a portrait front) or { url, orientation: 'landscape'|'portrait' }
-// to say whether that card's FRONT photo is landscape or portrait. Leave empty to see
-// numbered placeholder swatches in the brand palette instead (alternating orientation).
+// plain URL (defaults to a portrait front) or { url, orientation: 'landscape'|'portrait', name }
+// to say whether that card's FRONT photo is landscape or portrait, and its stable identifier
+// (needed because `url` may be a blob: URL with no filename to recover it from). Leave empty
+// to see numbered placeholder swatches in the brand palette instead (alternating orientation).
 // Configured from Angular — see apps/frontend/src/app/postcard-rack/postcard-images.ts
 const IMAGES = window.__POSTCARD_IMAGES__ || [];
 
-function imageEntry(i) {
-  if (!IMAGES.length) return { url: null, orientation: i % 4 === 3 ? 'landscape' : 'portrait' };
-  const raw = IMAGES[i % IMAGES.length];
-  return typeof raw === 'string' ? { url: raw, orientation: 'portrait' } : { url: raw.url, orientation: raw.orientation || 'portrait' };
-}
-
 // A card's "name" is its design filename without extension, e.g. "7" for
 // /assets/cards/designs/7.svg — the only stable identifier we have per design.
+// Only used as a fallback for a plain-string/URL entry; Angular-supplied
+// entries carry their name explicitly (see IMAGES comment above).
 function cardNameFromUrl(url) {
   if (!url) return null;
   const file = url.split('/').pop() || '';
   return file.replace(/\.[^.]+$/, '');
+}
+
+function imageEntry(i) {
+  if (!IMAGES.length) return { url: null, orientation: i % 4 === 3 ? 'landscape' : 'portrait', name: null };
+  const raw = IMAGES[i % IMAGES.length];
+  return typeof raw === 'string'
+    ? { url: raw, orientation: 'portrait', name: cardNameFromUrl(raw) }
+    : { url: raw.url, orientation: raw.orientation || 'portrait', name: raw.name || cardNameFromUrl(raw.url) };
 }
 
 // Drawn onto a canvas ourselves (rather than handed straight to
@@ -397,7 +402,7 @@ const faceEntries = await Promise.all(
   Array.from({ length: TOTAL_POCKETS }, (_, i) => {
     const entry = imageEntry(i);
     const landscape = entry.orientation === 'landscape';
-    const cardName = cardNameFromUrl(entry.url) || `placeholder-${i}`;
+    const cardName = entry.name || `placeholder-${i}`;
     if (entry.url) return loadTexture(entry.url).then((t) => ({ texture: t || placeholderTexture(i, landscape), orientation: entry.orientation, cardName }));
     return Promise.resolve({ texture: placeholderTexture(i, landscape), orientation: entry.orientation, cardName });
   }),
@@ -644,7 +649,16 @@ function textureToImageSrc(tex) {
   const img = tex && tex.image;
   if (!img) return null;
   if (img instanceof HTMLCanvasElement) return img.toDataURL('image/png');
-  return img.src || null;
+  // Every card texture today is canvas-backed (see loadTexture/placeholderTexture
+  // above), so this branch shouldn't run — but if a future texture source ever
+  // hands us a bare <img> instead, rasterize it to a PNG data URL too rather
+  // than returning its raw src (which could be an un-decoded or .svg URL and
+  // cause the same render issues we bake PNGs to avoid elsewhere).
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth || img.width;
+  canvas.height = img.naturalHeight || img.height;
+  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/png');
 }
 // The back canvas is always drawn landscape-content-first, then rotated -90°
 // into the physical (portrait) card buffer — see renderBack — because the

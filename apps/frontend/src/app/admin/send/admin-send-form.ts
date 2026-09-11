@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { catchError, debounceTime, distinctUntilChanged, from, of, switchMap } from 'rxjs';
 import { ApiClientService } from '../../api-client.service';
 import { Recipient } from '../../recipient-search/recipient.model';
-import { POSTCARD_IMAGES } from '../../postcard-rack/postcard-images';
+import { POSTCARD_IMAGES, postcardFrontSrc } from '../../postcard-rack/postcard-images';
 
 interface PostcardChoice {
   cardName: string;
@@ -17,8 +17,9 @@ function cardNameFromUrl(url: string): string {
 }
 
 const POSTCARD_CHOICES: PostcardChoice[] = POSTCARD_IMAGES.map((image) => {
-  const imageUrl = typeof image === 'string' ? image : image.url;
-  return { cardName: cardNameFromUrl(imageUrl), imageUrl };
+  const url = typeof image === 'string' ? image : image.url;
+  const cardName = cardNameFromUrl(url);
+  return { cardName, imageUrl: postcardFrontSrc(cardName) };
 });
 
 @Component({

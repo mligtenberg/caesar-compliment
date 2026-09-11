@@ -3,7 +3,7 @@ import { ApiClientService, AppState } from './api-client.service';
 import { ApiKeyService } from './api-key.service';
 import { Compliment } from './compliment.model';
 import { ComplimentsReel } from './compliments-reel/compliments-reel';
-import { precachePostcardImages } from './compliments-reel/postcard-images';
+import { preloadPostcardImages } from './compliments-reel/postcard-images';
 
 // The dashboard is left running for the whole event, so it re-reads the app
 // state periodically instead of only at startup: flipping the state in admin
@@ -52,7 +52,7 @@ export class App implements OnDestroy {
     this.error.set(null);
 
     try {
-      const [compliments] = await Promise.all([this.apiClient.getAll(), precachePostcardImages()]);
+      const [compliments] = await Promise.all([this.apiClient.getAll(), preloadPostcardImages()]);
       this.compliments.set(compliments.filter((c) => !c.hideFromDashboard));
     } catch {
       this.error.set('Failed to load compliments. Check that the API key is valid.');

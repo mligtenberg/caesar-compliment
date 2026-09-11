@@ -1,6 +1,6 @@
 import { Component, Input, OnChanges, signal } from '@angular/core';
 import { Compliment } from '../compliment.model';
-import { POSTCARD_IMAGES, postcardFrontIsLandscape } from './postcard-images';
+import { POSTCARD_IMAGES, cardNameFromUrl, postcardFrontIsLandscape, postcardFrontSrc } from './postcard-images';
 import { renderFinishedPostcardBackLandscape } from './postcard-back-renderer';
 
 // A calm parallax layer behind the featured card: postcards drifting down the
@@ -54,10 +54,6 @@ function imageUrl(image: string | { url: string }): string {
   return typeof image === 'string' ? image : image.url;
 }
 
-function cardNameFromUrl(url: string): string {
-  return url.slice(url.lastIndexOf('/') + 1).replace('.svg', '');
-}
-
 @Component({
   selector: 'app-falling-cards',
   templateUrl: './falling-cards.html',
@@ -88,9 +84,9 @@ export class FallingCards implements OnChanges {
       src = renderFinishedPostcardBackLandscape(compliment.text, compliment.recipientName);
       landscape = true;
     } else {
-      const url = imageUrl(pick(POSTCARD_IMAGES));
-      src = url;
-      landscape = postcardFrontIsLandscape(cardNameFromUrl(url));
+      const cardName = cardNameFromUrl(imageUrl(pick(POSTCARD_IMAGES)));
+      src = postcardFrontSrc(cardName);
+      landscape = postcardFrontIsLandscape(cardName);
     }
 
     const duration = between(38, 46) - nearness * 20;

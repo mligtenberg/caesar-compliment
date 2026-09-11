@@ -1,17 +1,23 @@
-@if (displayName) {
-  <div class="auth-bar">
-    @if (profilePictureUrl) {
-      <img class="avatar" [src]="profilePictureUrl" alt="" />
-    } @else {
-      <span class="avatar avatar-initials">{{ initials }}</span>
-    }
-    <span class="auth-name">{{ displayName }}</span>
-    @if (inAdmin()) {
-      <a class="admin-btn" routerLink="/">Terug naar app</a>
-    } @else if (isAdmin()) {
-      <a class="admin-btn" routerLink="/admin">Admin</a>
-    }
-    <button type="button" class="sign-out-btn" (click)="signOut()">Uitloggen</button>
+@if (!imagesReady()) {
+  <div class="loading-screen">
+    <div class="loading-spinner"></div>
   </div>
+} @else {
+  @if (displayName) {
+    <div class="auth-bar">
+      @if (profilePictureUrl) {
+        <img class="avatar" [src]="profilePictureUrl" alt="" />
+      } @else {
+        <span class="avatar avatar-initials">{{ initials }}</span>
+      }
+      <span class="auth-name">{{ displayName }}</span>
+      @if (inAdmin()) {
+        <a class="admin-btn" routerLink="/">Terug naar app</a>
+      } @else if (isAdmin()) {
+        <a class="admin-btn" routerLink="/admin">Admin</a>
+      }
+      <button type="button" class="sign-out-btn" (click)="signOut()">Uitloggen</button>
+    </div>
+  }
+  <router-outlet></router-outlet>
 }
-<router-outlet></router-outlet>

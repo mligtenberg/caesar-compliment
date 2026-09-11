@@ -1,7 +1,7 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, signal } from '@angular/core';
 import { AppState } from '../api-client.service';
 import { Compliment } from '../compliment.model';
-import { postcardFrontIsLandscape } from './postcard-images';
+import { postcardFrontIsLandscape, postcardFrontSrc } from './postcard-images';
 import { renderFinishedPostcardBack } from './postcard-back-renderer';
 import { FallingCards } from './falling-cards';
 
@@ -122,7 +122,7 @@ export class ComplimentsReel implements OnChanges, OnDestroy {
     const compliment = this.queue[this.queueIndex++];
     this.cards.set([{
       id: this.nextId++,
-      frontSrc: `/assets/cards/designs/${compliment.cardName}.svg`,
+      frontSrc: postcardFrontSrc(compliment.cardName),
       frontIsLandscape: postcardFrontIsLandscape(compliment.cardName),
       backSrc: renderFinishedPostcardBack(compliment.text, compliment.recipientName),
       recipientName: compliment.recipientName,

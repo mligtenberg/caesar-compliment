@@ -14,20 +14,26 @@ import { RecipientSearch } from './recipient-search/recipient-search';
 import { ThanksOverlay } from './thanks-overlay/thanks-overlay';
 
 export const appRoutes: Route[] = [
-  { path: '', component: RecipientSearch, canActivate: [MsalGuard, appStateGuard, alreadySentGuard] },
-  { path: 'rack', component: PostcardRack, canActivate: [MsalGuard, appStateGuard, alreadySentGuard] },
-  { path: 'thanks', component: ThanksOverlay, canActivate: [MsalGuard] },
-  { path: 'locked', component: LockedOverlay, canActivate: [MsalGuard] },
-  { path: 'receiving', component: ReceiveOverlay, canActivate: [MsalGuard] },
   {
-    path: 'admin',
-    component: Admin,
-    canActivate: [MsalGuard, adminGuard],
+    path: '',
+    canActivate: [MsalGuard],
     children: [
-      { path: '', redirectTo: 'roles', pathMatch: 'full' },
-      { path: 'roles', component: RoleAssignmentPage },
-      { path: 'compliments', component: AdminCompliments },
-      { path: 'status', component: AppStatePage },
+      { path: '', component: RecipientSearch, canActivate: [appStateGuard, alreadySentGuard] },
+      { path: 'rack', component: PostcardRack, canActivate: [appStateGuard, alreadySentGuard] },
+      { path: 'thanks', component: ThanksOverlay },
+      { path: 'locked', component: LockedOverlay },
+      { path: 'receiving', component: ReceiveOverlay },
+      {
+        path: 'admin',
+        component: Admin,
+        canActivate: [adminGuard],
+        children: [
+          { path: '', redirectTo: 'roles', pathMatch: 'full' },
+          { path: 'roles', component: RoleAssignmentPage },
+          { path: 'compliments', component: AdminCompliments },
+          { path: 'status', component: AppStatePage },
+        ],
+      },
     ],
   },
 ];
