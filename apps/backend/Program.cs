@@ -123,7 +123,6 @@ builder.Services.AddSingleton<TokenCredential>(_ =>
     {
         var token = await managedIdentity.GetTokenAsync(
             new TokenRequestContext(["api://AzureADTokenExchange/.default"]), ct);
-        Console.WriteLine($"Token: {token.Token}");
         return token.Token;
     });
 });

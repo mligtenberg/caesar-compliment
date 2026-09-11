@@ -130,7 +130,7 @@ module storageAccount 'modules/storage-account.bicep' = {
 
 output backendUrl string = 'https://${webApp.outputs.defaultHostName}'
 output backendName string = webApp.outputs.name
-output frontendUrl string = 'https://${staticWebApp.outputs.defaultHostName}'
+output frontendUrl string = 'https://complimentje.caesar.nl'
 output frontendName string = staticWebApp.outputs.name
 output dashboardUrl string = 'https://${dashboardStaticWebApp.outputs.defaultHostName}'
 output dashboardName string = dashboardStaticWebApp.outputs.name
