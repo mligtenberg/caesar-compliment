@@ -22,6 +22,7 @@
   font-size: 14px;
   padding: 10px 14px;
   border-radius: 8px;
+  transition: background 120ms ease, color 120ms ease;
 }
 
 .admin-nav a:hover {
@@ -36,4 +37,34 @@
 .admin-content {
   flex: 1;
   padding: 96px 32px 32px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-nav {
+    width: 100%;
+    flex-direction: row;
+    padding: 72px 16px 12px;
+    border-right: none;
+    border-bottom: 1px solid #dde5ef;
+    gap: 8px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    box-sizing: border-box;
+  }
+
+  .admin-nav a {
+    text-align: center;
+    padding: 8px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .admin-content {
+    padding: 20px 16px 32px;
+  }
 }

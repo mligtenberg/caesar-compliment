@@ -16,7 +16,7 @@
           class="suggestion"
           [class.suggestion--complimented]="recipient.hasCompliment"
           [disabled]="recipient.hasCompliment"
-          [title]="recipient.hasCompliment ? 'Deze persoon heeft al een complimentje, laten we er iedereen een complimentje geven' : ''"
+          [title]="recipient.hasCompliment ? 'Deze persoon heeft al een complimentje, laten we iedereen een complimentje geven' : ''"
           (click)="selectRecipient(recipient)"
         >
           @if (avatarUrls()[recipient.id]) {

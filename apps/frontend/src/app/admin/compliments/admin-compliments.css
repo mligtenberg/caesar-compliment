@@ -213,3 +213,35 @@ h1 {
 .compliment-full {
   white-space: pre-wrap;
 }
+
+@media (max-width: 640px) {
+  .search-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .search-input {
+    max-width: 100%;
+  }
+
+  .add-btn {
+    margin-left: 0;
+    text-align: center;
+  }
+
+  .compliments-table {
+    table-layout: auto;
+  }
+
+  .compliments-table th:first-child,
+  .compliments-table td:first-child {
+    width: 100%;
+    padding: 12px 10px;
+  }
+
+  .compliments-table th:nth-child(n + 2),
+  .compliments-table td:nth-child(n + 2) {
+    display: none;
+  }
+}

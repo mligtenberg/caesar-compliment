@@ -162,3 +162,24 @@ h1 {
   font-weight: 700;
   cursor: pointer;
 }
+
+@media (max-width: 640px) {
+  .found-user {
+    flex-wrap: wrap;
+  }
+
+  .found-user-info {
+    flex-basis: calc(100% - 44px);
+  }
+
+  .found-user select,
+  .found-user button {
+    width: 100%;
+  }
+
+  .assignments-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
