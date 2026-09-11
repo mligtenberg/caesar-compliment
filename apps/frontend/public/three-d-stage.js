@@ -66,7 +66,7 @@
     canvas { display: block; outline: none; }
     .note {
       position: absolute;
-      top: 96px;
+      top: var(--stage-note-top, 96px);
       left: 50%;
       transform: translateX(-50%);
       max-width: 80%;

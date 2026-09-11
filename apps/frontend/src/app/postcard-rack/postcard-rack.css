@@ -49,6 +49,17 @@ three-d-stage {
   cursor: pointer;
 }
 .recipient-badge button:hover { background: #2E62A0; }
+@media (max-width: 640px) {
+  .recipient-badge {
+    top: 68px;
+    left: 12px;
+    right: 12px;
+    justify-content: space-between;
+  }
+  three-d-stage {
+    --stage-note-top: 140px;
+  }
+}
 .tier-row { display: flex; justify-content: space-between; }
 .tier-row button {
   pointer-events: auto;
