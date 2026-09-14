@@ -144,11 +144,22 @@ three-d-stage {
 }
 .compliment-panel textarea::selection { background: transparent; color: transparent; }
 .compliment-panel textarea::-moz-selection { background: transparent; color: transparent; }
-:host-context(.is-touch) .compliment-panel {
-  inset: auto;
+.compliment-mobile-stack { display: contents; }
+:host-context(.is-touch) .compliment-mobile-stack {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
   left: 5%;
   right: 5%;
-  bottom: 18%;
+  bottom: 6%;
+  gap: 10px;
+  pointer-events: none;
+}
+:host-context(.is-touch) .compliment-mobile-stack > * {
+  pointer-events: auto;
+}
+:host-context(.is-touch) .compliment-panel {
+  position: static;
   pointer-events: auto;
 }
 :host-context(.is-touch) .compliment-panel textarea {
@@ -179,6 +190,12 @@ three-d-stage {
   z-index: 2;
 }
 .compliment-actions > * { pointer-events: auto; }
+:host-context(.is-touch) .compliment-actions {
+  position: static;
+  right: auto;
+  bottom: auto;
+  align-items: stretch;
+}
 #compliment-submit {
   border: none;
   border-radius: 8px;
