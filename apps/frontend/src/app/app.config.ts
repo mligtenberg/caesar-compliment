@@ -22,7 +22,7 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   );
 
   return {
-    interactionType: InteractionType.Redirect,
+    interactionType: InteractionType.Popup,
     protectedResourceMap,
   };
 }
