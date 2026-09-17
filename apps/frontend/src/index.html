@@ -18,9 +18,42 @@
       three-d-stage:not(:defined) {
         visibility: hidden;
       }
+
+      /* Shown the instant the browser parses this markup - before the JS
+         bundle has loaded, and before MSAL has finished a silent/redirect
+         token refresh - so the page never sits blank white while that
+         resolves. Angular clears app-root's light DOM and takes over once
+         it bootstraps. */
+      .initial-loading-screen {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #224f82;
+      }
+
+      .initial-loading-spinner {
+        width: 64px;
+        height: 64px;
+        border: 6px solid rgba(255, 255, 255, 0.2);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: initial-loading-spin 1s linear infinite;
+      }
+
+      @keyframes initial-loading-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
   <body>
-    <app-root></app-root>
+    <app-root>
+      <div class="initial-loading-screen">
+        <div class="initial-loading-spinner"></div>
+      </div>
+    </app-root>
   </body>
 </html>

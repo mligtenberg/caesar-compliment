@@ -65,7 +65,7 @@ export class FallingCards implements OnChanges {
   protected readonly cards = signal<FallingCard[]>([]);
 
   ngOnChanges(): void {
-    if (this.compliments.length > 0 && this.cards().length === 0) {
+    if (this.cards().length === 0) {
       this.cards.set(Array.from({ length: CARD_COUNT }, (_, i) => this.buildCard(i)));
     }
   }
@@ -75,7 +75,9 @@ export class FallingCards implements OnChanges {
     // Kept well under the featured card's ~320px so the layer stays scenery.
     const width = between(46, 120);
     const nearness = (width - 46) / 74;
-    const isBack = Math.random() < BACK_SHARE;
+    // No real compliments yet to render on a back face, so the layer stays
+    // front-only until the first one comes in.
+    const isBack = this.compliments.length > 0 && Math.random() < BACK_SHARE;
 
     let src: string;
     let landscape: boolean;

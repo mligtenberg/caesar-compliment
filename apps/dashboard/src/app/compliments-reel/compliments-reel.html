@@ -1,8 +1,6 @@
 <div class="reel-stage">
-  @if (compliments.length === 0) {
-    <p class="empty">No compliments yet.</p>
-  } @else {
-    <app-falling-cards [compliments]="compliments" />
+  <app-falling-cards [compliments]="compliments" />
+  @if (compliments.length > 0) {
     @for (card of cards(); track card.id) {
       <div
         class="reel-card"

@@ -19,13 +19,6 @@
   background: #224f82;
 }
 
-.empty {
-  color: #fff;
-  font-family: Montserrat, -apple-system, sans-serif;
-  font-size: 24px;
-  text-align: center;
-}
-
 /* Handles position/tumble/scale/opacity for the whole flight. The frame
    itself is a fixed size throughout - see :host. */
 .reel-card {
