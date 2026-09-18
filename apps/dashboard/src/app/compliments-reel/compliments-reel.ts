@@ -1,13 +1,15 @@
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, signal } from '@angular/core';
 import { AppState } from '../api-client.service';
 import { Compliment } from '../compliment.model';
-import { postcardFrontIsLandscape, postcardFrontSrc } from './postcard-images';
+import { POSTCARD_IMAGES, cardNameFromUrl, postcardFrontIsLandscape, postcardFrontSrc } from './postcard-images';
 import { renderFinishedPostcardBack } from './postcard-back-renderer';
 import { FallingCards } from './falling-cards';
 
 const CARD_DURATION_MS = 7100;
-const CYCLE_DURATION_MS = 60000;
-const CARDS_PER_CYCLE = Math.ceil(CYCLE_DURATION_MS / CARD_DURATION_MS);
+// The reel should never look sparse: even a handful of real compliments
+// still cycles through at least this many cards per pass (see buildQueue).
+// Above that, every real compliment gets a slot - the cycle just runs longer.
+const MIN_CARDS_PER_CYCLE = 10;
 
 interface ReelCard {
   // Unique per showing (not per compliment) so *ngFor/@for's track forces the
@@ -16,6 +18,9 @@ interface ReelCard {
   id: number;
   frontSrc: string;
   frontIsLandscape: boolean;
+  // Filler cards (see buildQueue) have no message to reveal, so they fly
+  // through front-only and never flip.
+  isFiller: boolean;
   backSrc: string;
   recipientName: string;
   text: string;
@@ -27,6 +32,15 @@ interface ReelCard {
   outRot: number;
 }
 
+function imageUrl(image: string | { url: string }): string {
+  return typeof image === 'string' ? image : image.url;
+}
+
+function randomCardName(): string {
+  const image = POSTCARD_IMAGES[Math.floor(Math.random() * POSTCARD_IMAGES.length)];
+  return cardNameFromUrl(imageUrl(image));
+}
+
 function shuffled<T>(items: readonly T[]): T[] {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -36,15 +50,16 @@ function shuffled<T>(items: readonly T[]): T[] {
   return copy;
 }
 
-// Builds a randomized queue of at least `size` compliments, reshuffling and
-// concatenating fresh passes over the source list so a short list still
-// produces a varied - not just repeating - 60 second cycle.
-function buildQueue(compliments: readonly Compliment[], size: number): Compliment[] {
-  const queue: Compliment[] = [];
-  while (queue.length < size) {
-    queue.push(...shuffled(compliments));
-  }
-  return queue.slice(0, size);
+// Builds a randomized queue of exactly `size` slots. A real compliment fills
+// each slot while there are enough to go around; once they run out (down to
+// none at all) the rest of the queue is padded with `null` (filler) slots -
+// then the whole queue is reshuffled so filler doesn't always trail the real
+// compliments.
+function buildQueue(compliments: readonly Compliment[], size: number): (Compliment | null)[] {
+  if (compliments.length >= size) return shuffled(compliments).slice(0, size);
+
+  const fillerCount = size - compliments.length;
+  return shuffled([...compliments, ...Array.from({ length: fillerCount }, () => null)]);
 }
 
 // Random offscreen entry point and rotation, mirroring how a postcard would
@@ -93,13 +108,13 @@ export class ComplimentsReel implements OnChanges, OnDestroy {
     }
   }
 
-  private queue: Compliment[] = [];
+  private queue: (Compliment | null)[] = [];
   private queueIndex = 0;
   private nextId = 0;
   private timer: ReturnType<typeof setInterval> | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['compliments'] && this.compliments.length > 0 && !this.timer) {
+    if (changes['compliments'] && !this.timer) {
       this.start();
     }
   }
@@ -119,20 +134,40 @@ export class ComplimentsReel implements OnChanges, OnDestroy {
       this.refillQueue();
     }
 
-    const compliment = this.queue[this.queueIndex++];
-    this.cards.set([{
+    const item = this.queue[this.queueIndex++];
+    this.cards.set([item ? this.buildComplimentCard(item) : this.buildFillerCard()]);
+  }
+
+  private buildComplimentCard(compliment: Compliment): ReelCard {
+    return {
       id: this.nextId++,
       frontSrc: postcardFrontSrc(compliment.cardName),
       frontIsLandscape: postcardFrontIsLandscape(compliment.cardName),
+      isFiller: false,
       backSrc: renderFinishedPostcardBack(compliment.text, compliment.recipientName),
       recipientName: compliment.recipientName,
       text: compliment.text,
       ...randomFlight(),
-    }]);
+    };
+  }
+
+  private buildFillerCard(): ReelCard {
+    const cardName = randomCardName();
+    return {
+      id: this.nextId++,
+      frontSrc: postcardFrontSrc(cardName),
+      frontIsLandscape: postcardFrontIsLandscape(cardName),
+      isFiller: true,
+      backSrc: '',
+      recipientName: '',
+      text: '',
+      ...randomFlight(),
+    };
   }
 
   private refillQueue(): void {
-    this.queue = buildQueue(this.compliments, CARDS_PER_CYCLE);
+    const size = Math.max(this.compliments.length, MIN_CARDS_PER_CYCLE);
+    this.queue = buildQueue(this.compliments, size);
     this.queueIndex = 0;
   }
 }

@@ -49,6 +49,17 @@
   animation-name: reel-card-roll-landscape-front;
 }
 
+/* Filler cards (see buildQueue in compliments-reel.ts) have no back to
+   reveal, so they hold their starting orientation for the whole flight
+   instead of animating through the flip. */
+.no-flip .reel-card-flip {
+  animation: none;
+}
+
+.is-landscape-front.no-flip .reel-card-flip {
+  transform: rotateZ(-90deg);
+}
+
 .reel-card-face {
   position: absolute;
   object-fit: cover;
