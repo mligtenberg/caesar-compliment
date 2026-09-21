@@ -9,6 +9,8 @@ internal static class ComplimentsEndpoints
         {
             if (await appState.GetStateAsync() != "Open") return Results.StatusCode(StatusCodes.Status423Locked);
 
+            if (compliment.Text.Length > 10000) return Results.BadRequest("Text is too long.");
+
             await compliments.UpsertAsync(user.GetObjectId(), user.GetDisplayName(), compliment);
 
             return Results.NoContent();
