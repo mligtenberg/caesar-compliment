@@ -7,10 +7,13 @@ import { renderFinishedPostcardBackLandscape } from './postcard-back-renderer';
 // screen forever. Each card is a plain CSS animation whose custom properties
 // are randomized once at startup - no timers and no respawning, so the layer
 // costs nothing per frame beyond compositing, however long the dashboard runs.
-const CARD_COUNT = 25;
+const CARD_COUNT = 10;
 // Roughly one in six shows its back, so the layer reads as postcards rather
 // than as a wall of front artwork - but stays clearly front-dominated.
 const BACK_SHARE = 1 / 6;
+// However few cards that share works out to, always keep at least this many
+// backs in view so a finished compliment is never just a coin-flip away.
+const MIN_BACKS = 2;
 // The initial stagger window is split into this many bands, so cards fill
 // the screen in a few visible waves rather than one continuous trickle.
 const STAGGER_TIERS = 4;
@@ -18,6 +21,7 @@ const STAGGER_MAX_S = 18;
 
 interface FallingCard {
   id: number;
+  isBack: boolean;
   src: string;
   landscape: boolean;
   left: string;
@@ -54,6 +58,21 @@ function imageUrl(image: string | { url: string }): string {
   return typeof image === 'string' ? image : image.url;
 }
 
+// Rolls BACK_SHARE independently per card, then tops up with extra backs
+// (without duplicates) until at least MIN_BACKS are showing.
+function chooseBackIndices(count: number): Set<number> {
+  const backs = new Set<number>();
+  for (let i = 0; i < count; i++) {
+    if (Math.random() < BACK_SHARE) backs.add(i);
+  }
+  const remaining = Array.from({ length: count }, (_, i) => i).filter((i) => !backs.has(i));
+  while (backs.size < Math.min(MIN_BACKS, count) && remaining.length > 0) {
+    const [i] = remaining.splice(Math.floor(Math.random() * remaining.length), 1);
+    backs.add(i);
+  }
+  return backs;
+}
+
 @Component({
   selector: 'app-falling-cards',
   templateUrl: './falling-cards.html',
@@ -66,17 +85,27 @@ export class FallingCards implements OnChanges {
 
   ngOnChanges(): void {
     if (this.cards().length === 0) {
-      this.cards.set(Array.from({ length: CARD_COUNT }, (_, i) => this.buildCard(i)));
+      // No real compliments yet to render on a back face, so the layer
+      // stays front-only until the first one comes in.
+      const backIndices = this.compliments.length > 0 ? chooseBackIndices(CARD_COUNT) : new Set<number>();
+      this.cards.set(Array.from({ length: CARD_COUNT }, (_, i) => this.buildCard(i, backIndices.has(i))));
     }
   }
 
-  private buildCard(i: number): FallingCard {
+  // Fires every time a card's CSS animation loops back to its "from" state -
+  // for back-facing cards, that's the moment to swap in a freshly-picked
+  // compliment so the same one doesn't loop forever.
+  protected onIteration(card: FallingCard): void {
+    if (!card.isBack || this.compliments.length === 0) return;
+    const compliment = pick(this.compliments);
+    const src = renderFinishedPostcardBackLandscape(compliment.text, compliment.recipientName);
+    this.cards.update((cards) => cards.map((c) => (c.id === card.id ? { ...c, src } : c)));
+  }
+
+  private buildCard(i: number, isBack: boolean): FallingCard {
     // Bigger reads as nearer: brighter, and falling faster past the viewer.
     const width = between(180, 450);
     const nearness = (width - 180) / 270;
-    // No real compliments yet to render on a back face, so the layer stays
-    // front-only until the first one comes in.
-    const isBack = this.compliments.length > 0 && Math.random() < BACK_SHARE;
 
     let src: string;
     let landscape: boolean;
@@ -95,6 +124,7 @@ export class FallingCards implements OnChanges {
 
     return {
       id: i,
+      isBack,
       src,
       landscape,
       // Spread across the width one slot per card, jittered, so the cards

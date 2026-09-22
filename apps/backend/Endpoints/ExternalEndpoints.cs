@@ -11,7 +11,9 @@ internal static class ExternalEndpoints
             // compliment - falls back to splitting that name if the recipient isn't found
             // (e.g. removed since). RecipientDisplayName carries the full stored name
             // alongside it for future dashboard work that needs the whole name.
-            var result = all.Select(c => new DashboardCompliment(
+            var result = all
+                .Where(c => !c.HideFromDashboard)
+                .Select(c => new DashboardCompliment(
                 c.SenderId,
                 c.RecipientId,
                 recipients.GetFirstNameById(c.RecipientId) ?? c.RecipientName.Split(' ')[0],

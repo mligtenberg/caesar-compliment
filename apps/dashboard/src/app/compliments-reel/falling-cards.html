@@ -5,6 +5,7 @@
       [class.is-landscape]="card.landscape"
       [src]="card.src"
       alt=""
+      (animationiteration)="onIteration(card)"
       [style.--left]="card.left"
       [style.--w]="card.width"
       [style.--drift]="card.drift"
