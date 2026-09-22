@@ -7,7 +7,7 @@ import { renderFinishedPostcardBackLandscape } from './postcard-back-renderer';
 // screen forever. Each card is a plain CSS animation whose custom properties
 // are randomized once at startup - no timers and no respawning, so the layer
 // costs nothing per frame beyond compositing, however long the dashboard runs.
-const CARD_COUNT = 50;
+const CARD_COUNT = 25;
 // Roughly one in six shows its back, so the layer reads as postcards rather
 // than as a wall of front artwork - but stays clearly front-dominated.
 const BACK_SHARE = 1 / 6;
@@ -72,9 +72,8 @@ export class FallingCards implements OnChanges {
 
   private buildCard(i: number): FallingCard {
     // Bigger reads as nearer: brighter, and falling faster past the viewer.
-    // Kept well under the featured card's ~320px so the layer stays scenery.
-    const width = between(46, 120);
-    const nearness = (width - 46) / 74;
+    const width = between(180, 450);
+    const nearness = (width - 180) / 270;
     // No real compliments yet to render on a back face, so the layer stays
     // front-only until the first one comes in.
     const isBack = this.compliments.length > 0 && Math.random() < BACK_SHARE;

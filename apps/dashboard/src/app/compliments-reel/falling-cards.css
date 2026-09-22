@@ -41,7 +41,7 @@
    of spending its first seconds crossing empty space above the screen. */
 @keyframes falling-card-drop {
   from {
-    transform: translate3d(0, -20vh, 0) rotate(var(--spin-from));
+    transform: translate3d(0, -40vh, 0) rotate(var(--spin-from));
   }
   to {
     transform: translate3d(var(--drift), 140vh, 0) rotate(var(--spin-to));
