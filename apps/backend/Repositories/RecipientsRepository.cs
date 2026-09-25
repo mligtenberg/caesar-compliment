@@ -59,6 +59,8 @@ internal class RecipientsRepository : IRecipientsRepository
         _emailById = recipients.ToDictionary(r => r.Id, r => string.IsNullOrWhiteSpace(r.Email) ? r.Upn : r.Email);
     }
 
+    public int Count() => _recipients.Count;
+
     public string? GetUpnById(string id) => _upnById.GetValueOrDefault(id);
 
     public string? GetFirstNameById(string id) => _firstNameById.GetValueOrDefault(id);

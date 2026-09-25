@@ -147,6 +147,13 @@ export class ApiClientService {
     await firstValueFrom(this.http.post(`${environment.api.baseUrl}/admin/send`, compliment));
   }
 
+  async getRecipientsCount(): Promise<number> {
+    const response = await firstValueFrom(
+      this.http.get<{ count: number }>(`${environment.api.baseUrl}/admin/recipients/count`)
+    );
+    return response.count;
+  }
+
   getAppState(): Promise<AppState> {
     return firstValueFrom(
       this.http.get<AppState>(`${environment.api.baseUrl}/appstate`).pipe(catchError(() => of('Open' as AppState)))

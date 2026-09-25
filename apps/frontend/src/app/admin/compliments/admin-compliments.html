@@ -1,4 +1,9 @@
-<h1>Complimenten</h1>
+<h1>
+  Complimenten
+  @if (!loading() && totalRecipients(); as total) {
+    <span class="count-badge">{{ compliments().length }}/{{ total }}</span>
+  }
+</h1>
 
 @if (error()) {
   <p class="error">{{ error() }}</p>

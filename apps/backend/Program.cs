@@ -173,6 +173,7 @@ userPages.MapAppStateEndpoints();
 userPages.MapAdminComplimentsEndpoints();
 userPages.MapAdminSendEndpoints();
 userPages.MapAdminNotifyEndpoints();
+userPages.MapAdminRecipientsEndpoints();
 
 // Area 2: server-to-server access (e.g. the dashboard), secured by a shared API key
 // instead of a user sign-in.

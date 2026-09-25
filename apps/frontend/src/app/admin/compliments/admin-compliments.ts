@@ -20,6 +20,7 @@ export class AdminCompliments implements OnInit {
   protected readonly pendingDelete = signal<AdminCompliment | null>(null);
   protected readonly canMail = signal(false);
   protected readonly mailing = signal<string | null>(null);
+  protected readonly totalRecipients = signal<number | null>(null);
 
   protected readonly filteredCompliments = computed(() => {
     const query = this.search().trim().toLowerCase();
@@ -35,6 +36,7 @@ export class AdminCompliments implements OnInit {
   ngOnInit(): void {
     this.reload();
     this.apiClient.getAppState().then((state) => this.canMail.set(state === 'Receive'));
+    this.apiClient.getRecipientsCount().then((count) => this.totalRecipients.set(count));
   }
 
   private reload(): void {

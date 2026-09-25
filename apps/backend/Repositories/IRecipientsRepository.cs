@@ -13,6 +13,8 @@ internal interface IRecipientsRepository
     string? GetEmailById(string id);
 
     string? GetIdByViewerEmail(string? viewerEmail);
+
+    int Count();
 }
 
 record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl, bool HasCompliment = false);
