@@ -5,11 +5,14 @@ import { POSTCARD_IMAGES, cardNameFromUrl, postcardFrontIsLandscape, postcardFro
 import { renderFinishedPostcardBack } from './postcard-back-renderer';
 import { FallingCards } from './falling-cards';
 
-const CARD_DURATION_MS = 7100;
+// Must match the total animation duration in compliments-reel.css (reel-card /
+// reel-card-flip): fly-in (1800ms) + flip (400ms) + hold on the back (10000ms,
+// so it's readable for at least 10s) + fly-out (2300ms).
+const CARD_DURATION_MS = 14500;
 // The reel should never look sparse: even a handful of real compliments
 // still cycles through at least this many cards per pass (see buildQueue).
 // Above that, every real compliment gets a slot - the cycle just runs longer.
-const MIN_CARDS_PER_CYCLE = 10;
+const MIN_CARDS_PER_CYCLE = 2;
 
 interface ReelCard {
   // Unique per showing (not per compliment) so *ngFor/@for's track forces the
