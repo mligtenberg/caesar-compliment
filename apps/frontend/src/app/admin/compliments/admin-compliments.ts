@@ -54,6 +54,21 @@ export class AdminCompliments implements OnInit {
       .finally(() => this.loading.set(false));
   }
 
+  protected async exportWithoutCompliment(): Promise<void> {
+    this.error.set(null);
+    try {
+      const blob = await this.apiClient.getRecipientsWithoutComplimentCsv();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'geen-compliment-ontvangen.csv';
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      this.error.set('Kon de export niet downloaden.');
+    }
+  }
+
   protected select(compliment: AdminCompliment): void {
     this.selected.set(compliment);
   }

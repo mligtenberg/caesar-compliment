@@ -154,6 +154,14 @@ export class ApiClientService {
     return response.count;
   }
 
+  getRecipientsWithoutComplimentCsv(): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${environment.api.baseUrl}/admin/recipients/without-compliment.csv`, {
+        responseType: 'blob',
+      })
+    );
+  }
+
   getAppState(): Promise<AppState> {
     return firstValueFrom(
       this.http.get<AppState>(`${environment.api.baseUrl}/appstate`).pipe(catchError(() => of('Open' as AppState)))

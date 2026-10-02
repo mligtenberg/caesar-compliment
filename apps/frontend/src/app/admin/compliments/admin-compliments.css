@@ -31,6 +31,11 @@ h1 {
   margin-bottom: 16px;
 }
 
+.search-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .search-input {
   width: 100%;
   max-width: 400px;

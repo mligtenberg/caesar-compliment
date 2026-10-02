@@ -22,7 +22,10 @@
     } @else {
       <span></span>
     }
-    <button type="button" class="add-btn" (click)="openAdd()">Compliment toevoegen</button>
+    <div class="search-actions">
+      <button type="button" class="add-btn" (click)="exportWithoutCompliment()">Export zonder compliment (CSV)</button>
+      <button type="button" class="add-btn" (click)="openAdd()">Compliment toevoegen</button>
+    </div>
   </div>
 }
 

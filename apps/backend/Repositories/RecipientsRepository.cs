@@ -122,6 +122,18 @@ internal class RecipientsRepository : IRecipientsRepository
             .ToArray();
     }
 
+    public IReadOnlyList<RecipientExportRow> GetAllExcept(IReadOnlySet<string> excludedRecipientIds) =>
+        _recipients
+            .Where(r => !excludedRecipientIds.Contains(r.Id))
+            .OrderBy(r => r.Name, StringComparer.OrdinalIgnoreCase)
+            .Select(r => new RecipientExportRow(
+                r.Name,
+                _emailById[r.Id],
+                string.Join(", ", r.Companies),
+                string.Join("; ", r.Teams),
+                string.Join("; ", r.KlantTeams)))
+            .ToArray();
+
     private static string? LocalPart(string? email)
     {
         if (string.IsNullOrEmpty(email)) return null;

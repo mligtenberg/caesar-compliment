@@ -6,6 +6,8 @@ internal interface IRecipientsRepository
 
     IReadOnlyList<Recipient> SearchForAdmin(string? term, IReadOnlySet<string> excludedRecipientIds);
 
+    IReadOnlyList<RecipientExportRow> GetAllExcept(IReadOnlySet<string> excludedRecipientIds);
+
     string? GetUpnById(string id);
 
     string? GetFirstNameById(string id);
@@ -16,5 +18,7 @@ internal interface IRecipientsRepository
 
     int Count();
 }
+
+record RecipientExportRow(string Name, string Email, string Company, string Team, string KlantTeam);
 
 record Recipient(string Id, string Name, string JobTitle, string? AvatarUrl, bool HasCompliment = false);
